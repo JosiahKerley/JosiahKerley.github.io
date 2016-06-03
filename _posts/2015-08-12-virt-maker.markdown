@@ -20,6 +20,8 @@ half the time as packer, and then loop through a few singleton steps and make mu
 This got me thinking, I could use the `QCOW` external snapshot functionality to create a forking tree on a per-step basis that would allow
 me to create many different base/golden images from publicly available cloud images rapidly.
 
+<center><script type="text/javascript" src="https://asciinema.org/a/8jhudgtq8pxi4luh5xxf8k5ft.js" id="asciicast-8jhudgtq8pxi4luh5xxf8k5ft" async data-autoplay="true"></script></center>
+
 This is when I started `virt-maker` (https://github.com/JosiahKerley/virt-maker).  Over the course of about a week I was able to create a prototype
 tool that could take in a simple build spec and build host images.
 
@@ -31,10 +33,11 @@ now after the first time it is run it get's cached and is never needing to run a
 image creation time by about half, but the real value is when I need to deploy several images from that base image.  Normally in `Foreman` or `packer`, this would
 take /forever/.
 
+<center><script type="text/javascript" src="https://asciinema.org/a/bbvrrb4zop19e5i5zwemw6kzm.js" id="asciicast-bbvrrb4zop19e5i5zwemw6kzm" async data-autoplay="true"></script></center>
+
 In one way it's analogous to `docker`.  Docker cuts every intermediate step into snapshots and changes made during build time only have to execute since at the
 point in the process were the change was made. This allows for fast failure and so does `virt-maker`.
 
-<center><script type="text/javascript" src="https://asciinema.org/a/8jhudgtq8pxi4luh5xxf8k5ft.js" id="asciicast-8jhudgtq8pxi4luh5xxf8k5ft" async data-autoplay="true"></script></center>
 
 The current state of the is, well, bad.  My original intent was to keep it simple so that normal pythonistas could hop in and modify the core code and step providers
 easily.  Thinking back now, I wish I had started with a more traditional OOP aproach.  This would make it easier to abstract away some core mechanisms and allow for
