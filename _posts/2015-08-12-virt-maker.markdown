@@ -9,7 +9,7 @@ Virt-Maker
 ==========
 
 ## Automated virtual machine build tool based around libguestfs.
-<script type="text/javascript" src="https://asciinema.org/a/awibga8841ar83rw9v5dvms6v.js" id="asciicast-awibga8841ar83rw9v5dvms6v" async data-autoplay="true"></script>
+<center><script type="text/javascript" src="https://asciinema.org/a/awibga8841ar83rw9v5dvms6v.js" id="asciicast-awibga8841ar83rw9v5dvms6v" async data-autoplay="true"></script></center>
 
 
 I started `virt-maker` a while back, mostly to ease the creation of mutliple similar `QCOW` images for use in an `OpenStack` environment.
