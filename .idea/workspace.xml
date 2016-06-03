@@ -2,7 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1d1562da-736a-40ad-94d1-42ed4d211cd1" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_includes/page-footer.html" afterPath="$PROJECT_DIR$/_includes/page-footer.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_site/index.html" afterPath="$PROJECT_DIR$/_site/index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_site/main/2016/02/12/new-site.html" afterPath="$PROJECT_DIR$/_site/main/2016/02/12/new-site.html" />
     </list>
     <ignored path="JosiahKerley.github.io.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -37,7 +40,7 @@
         <entry file="file://$PROJECT_DIR$/_includes/page-footer.html">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.01863354">
-              <caret line="1" column="130" selection-start-line="1" selection-start-column="130" selection-end-line="1" selection-end-column="130" />
+              <caret line="1" column="161" selection-start-line="1" selection-start-column="161" selection-end-line="1" selection-end-column="161" />
               <folding />
             </state>
           </provider>
@@ -416,7 +419,7 @@
     <entry file="file://$PROJECT_DIR$/_includes/page-footer.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.01863354">
-          <caret line="1" column="130" selection-start-line="1" selection-start-column="130" selection-end-line="1" selection-end-column="130" />
+          <caret line="1" column="161" selection-start-line="1" selection-start-column="161" selection-end-line="1" selection-end-column="161" />
           <folding />
         </state>
       </provider>
