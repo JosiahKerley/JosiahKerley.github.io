@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1d1562da-736a-40ad-94d1-42ed4d211cd1" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_posts/2016-02-12-new-site.markdown" afterPath="$PROJECT_DIR$/_posts/2016-02-12-new-site.markdown" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_site/projects/2016/02/12/new-site.html" afterPath="$PROJECT_DIR$/_site/projects/2016/02/12/new-site.html" />
-    </list>
+    <list default="true" id="1d1562da-736a-40ad-94d1-42ed4d211cd1" name="Default" comment="" />
     <ignored path="JosiahKerley.github.io.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
