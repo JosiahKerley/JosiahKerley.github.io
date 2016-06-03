@@ -2,11 +2,13 @@
 title:        Josiah Kerley
 tagline:      Senior Cloud Engineer, Nerd, Etc...
 baseurl:      ""
+commonurl:    "JosiahKerley.io"
 paginate:     1
 
 # About/contact
 author:
   name:       Josiah Kerley
+  email:      josiahkerley@gmail.com
   url:        http://josiahkerley.io
 
 # Gems
