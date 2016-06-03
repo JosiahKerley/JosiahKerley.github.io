@@ -30,7 +30,7 @@ now after the first time it is run it get's cached and is never needing to run a
 image creation time by about half, but the real value is when I need to deploy several images from that base image.  Normally in `Foreman` or `packer`, this would
 take /forever/.
 
-
+<script type="text/javascript" src="https://asciinema.org/a/14.js" id="1rg44jz7brej5v2ro5dyfcixe" async></script>
 
 In one way it's analogous to `docker`.  Docker cuts every intermediate step into snapshots and changes made during build time only have to execute since at the
 point in the process were the change was made. This allows for fast failure and so does `virt-maker`.
