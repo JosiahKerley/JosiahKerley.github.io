@@ -34,6 +34,8 @@ take /forever/.
 In one way it's analogous to `docker`.  Docker cuts every intermediate step into snapshots and changes made during build time only have to execute since at the
 point in the process were the change was made. This allows for fast failure and so does `virt-maker`.
 
+<center><script type="text/javascript" src="https://asciinema.org/a/8jhudgtq8pxi4luh5xxf8k5ft.js" id="asciicast-8jhudgtq8pxi4luh5xxf8k5ft" async data-autoplay="true"></script></center>
+
 The current state of the is, well, bad.  My original intent was to keep it simple so that normal pythonistas could hop in and modify the core code and step providers
 easily.  Thinking back now, I wish I had started with a more traditional OOP aproach.  This would make it easier to abstract away some core mechanisms and allow for
 diverse backends.  I started drawing up new designs for how a "v.2" `virt-maker` would work internally, as well as things like meta-templates and a more straight-forward
