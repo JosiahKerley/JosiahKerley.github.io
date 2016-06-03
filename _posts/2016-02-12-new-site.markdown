@@ -30,7 +30,6 @@ now after the first time it is run it get's cached and is never needing to run a
 image creation time by about half, but the real value is when I need to deploy several images from that base image.  Normally in `Foreman` or `packer`, this would
 take /forever/.
 
-[![asciicast](https://asciinema.org/a/14.png)](https://asciinema.org/a/14)
 
 
 In one way it's analogous to `docker`.  Docker cuts every intermediate step into snapshots and changes made during build time only have to execute since at the
