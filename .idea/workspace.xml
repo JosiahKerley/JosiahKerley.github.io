@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="1d1562da-736a-40ad-94d1-42ed4d211cd1" name="Default" comment="">
-      <change type="MOVED" beforePath="$PROJECT_DIR$/_posts/virt-maker.markdown" afterPath="$PROJECT_DIR$/_posts/2015-08-12-virt-maker.markdown" />
-    </list>
+    <list default="true" id="1d1562da-736a-40ad-94d1-42ed4d211cd1" name="Default" comment="" />
     <ignored path="JosiahKerley.github.io.iws" />
     <ignored path=".idea/workspace.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />

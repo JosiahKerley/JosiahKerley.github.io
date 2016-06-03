@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <section class="page-header">
+  <h1 class="project-name">Josiah Kerley</h1>
+  <h2 class="project-tagline">Senior Cloud Engineer, Nerd, Etc...</h2>
+</section>
+
+    <section class="main-content">
+      
+      <h1 id="virt-maker">Virt-Maker</h1>
+
+<h2 id="automated-virtual-machine-build-tool-based-around-libguestfs">Automated virtual machine build tool based around libguestfs.</h2>
+
+<p>I started <code class="highlighter-rouge">virt-maker</code> a while back, mostly to ease the creation of mutliple similar <code class="highlighter-rouge">QCOW</code> images for use in an <code class="highlighter-rouge">OpenStack</code> environment.
+I had used packer to accomplish this goal, as well as wrapping some CI goodness around <code class="highlighter-rouge">Foreman</code>.  I really needed a tool that could take
+a base qcow that was cloud-ready and just make minor changes to it so it could crank out specialized, prebuilt, ready-to-fly images.
+Enter LibGuestFS.  Using <code class="highlighter-rouge">libguestfs</code>, specifically the tool <code class="highlighter-rouge">virt-customize</code> I was able to build a base application image in about
+half the time as packer, and then loop through a few singleton steps and make multiple copies of images with all the right config-goodness.
+This got me thinking, I could use the <code class="highlighter-rouge">QCOW</code> external snapshot functionality to create a forking tree on a per-step basis that would allow
+me to create many different base/golden images from publicly available cloud images rapidly.</p>
+
+<p>This is when I started <code class="highlighter-rouge">virt-maker</code> (https://github.com/JosiahKerley/virt-maker).  Over the course of about a week I was able to create a prototype
+tool that could take in a simple build spec and build host images.</p>
+
+<p>Effectively, it imports a starting image, usually a cloud image from http://docs.openstack.org/image-guide/obtain-images.html or natively from <code class="highlighter-rouge">virt-builder</code>,
+and creates a snapshot of the image.  When the snapshot is created, it is uniquely identified my the hashsum of the string that constitutes the step
+plus the hashsum of the previous step creating a rolling hash.  In this way, if the same work is ever attempted to be repeated, it will look to see if the work
+was already completed before and if so, start from that point.  Now we’re cooking.  Now I can use the long hardening script that I was using with <code class="highlighter-rouge">packer</code> but
+now after the first time it is run it get’s cached and is never needing to run again.  For a single image, using a pre-built cloud image has cut down the base
+image creation time by about half, but the real value is when I need to deploy several images from that base image.  Normally in <code class="highlighter-rouge">Foreman</code> or <code class="highlighter-rouge">packer</code>, this would
+take /forever/.</p>
+
+<p>In one way it’s analogous to <code class="highlighter-rouge">docker</code>.  Docker cuts every intermediate step into snapshots and changes made during build time only have to execute since at the
+point in the process were the change was made. This allows for fast failure and so does <code class="highlighter-rouge">virt-maker</code>.</p>
+
+<p>The current state of the is, well, bad.  My original intent was to keep it simple so that normal pythonistas could hop in and modify the core code and step providers
+easily.  Thinking back now, I wish I had started with a more traditional OOP aproach.  This would make it easier to abstract away some core mechanisms and allow for
+diverse backends.  I started drawing up new designs for how a “v.2” <code class="highlighter-rouge">virt-maker</code> would work internally, as well as things like meta-templates and a more straight-forward
+input/modify/output chain (whereas now it is extremely linear).</p>
+
+<p>Anyway, check it out.  Let me know what you think.  I have it published at https://github.com/JosiahKerley/virt-maker.</p>
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+  </body>
+</html>
