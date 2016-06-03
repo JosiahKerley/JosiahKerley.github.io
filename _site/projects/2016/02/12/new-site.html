@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="http://josiahkerley.io/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="http://josiahkerley.io/css/cayman.css">
+</head>
+
+  <body>
+    <section class="page-header">
+  <h1 class="project-name">Josiah Kerley</h1>
+  <h2 class="project-tagline">Senior Cloud Engineer, Nerd, Etc...</h2>
+</section>
+
+    <section class="main-content">
+      
+      <h1 id="virt-maker">Virt-Maker</h1>
+
+<h2 id="automated-virtual-machine-build-tool-based-around-libguestfs">Automated virtual machine build tool based around libguestfs.</h2>
+
+<p>I started virt-maker a while back, mostly to ease the creation of mutliple similar QCOW images for use in an OpenStack environment.
+I had used packer to accomplish this goal, as well as wrapping some CI goodness around Foreman.  I really needed a tool that could take
+a base qcow that was cloud-ready and just make minor changes to it so it could crank out specialized, prebuilt, ready-to-fly images.
+Enter LibGuestFS.  Using libguestfs, specifically the tool <code class="highlighter-rouge">virt-customize</code> I was able to build a base application image in about
+half the time as packer, and then loop through a few singleton steps and make multiple copies of images with all the right config-goodness.
+This got me thinking, I could use the QCOW external snapshot functionality to create a forking tree on a per-step basis that would allow
+me to create many different base/golden images from publicly available cloud images rapidly.</p>
+
+<p>This is when I started virt-maker (https://github.com/JosiahKerley/virt-maker).  Over the course of about a week I was able to create a prototype
+tool that could take in a simple build spec and build host images.</p>
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href=""></a> is maintained by <a href="mailto:?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+  </body>
+</html>
