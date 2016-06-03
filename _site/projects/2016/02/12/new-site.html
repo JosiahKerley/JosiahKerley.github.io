@@ -42,6 +42,8 @@ now after the first time it is run it get’s cached and is never needing to run
 image creation time by about half, but the real value is when I need to deploy several images from that base image.  Normally in <code class="highlighter-rouge">Foreman</code> or <code class="highlighter-rouge">packer</code>, this would
 take /forever/.</p>
 
+<p><a href="https://asciinema.org/a/14"><img src="https://asciinema.org/a/14.png" alt="asciicast" /></a></p>
+
 <p>In one way it’s analogous to <code class="highlighter-rouge">docker</code>.  Docker cuts every intermediate step into snapshots and changes made during build time only have to execute since at the
 point in the process were the change was made. This allows for fast failure and so does <code class="highlighter-rouge">virt-maker</code>.</p>
 
