@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="1d1562da-736a-40ad-94d1-42ed4d211cd1" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/_includes/page-footer.html" afterPath="$PROJECT_DIR$/_includes/page-footer.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/README.md" afterPath="$PROJECT_DIR$/README.md" />
     </list>
     <ignored path="JosiahKerley.github.io.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -33,13 +33,26 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="page-footer.html" pinned="false" current-in-tab="true">
+      <file leaf-file-name="page-footer.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/_includes/page-footer.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.01863354">
+            <state vertical-scroll-proportion="-0.625">
               <caret line="1" column="156" selection-start-line="1" selection-start-column="156" selection-end-line="1" selection-end-column="156" />
               <folding />
             </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="README.md" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/README.md">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.01875">
+              <caret line="1" column="41" selection-start-line="1" selection-start-column="41" selection-end-line="1" selection-end-column="41" />
+              <folding />
+            </state>
+          </provider>
+          <provider editor-type-id="MarkdownPreviewEditor">
+            <state />
           </provider>
         </entry>
       </file>
@@ -68,6 +81,7 @@
         <option value="$PROJECT_DIR$/_includes/page-header.html" />
         <option value="$PROJECT_DIR$/_config.yml" />
         <option value="$PROJECT_DIR$/_includes/page-footer.html" />
+        <option value="$PROJECT_DIR$/README.md" />
       </list>
     </option>
   </component>
@@ -415,10 +429,21 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/_includes/page-footer.html">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.01863354">
+        <state vertical-scroll-proportion="-0.625">
           <caret line="1" column="156" selection-start-line="1" selection-start-column="156" selection-end-line="1" selection-end-column="156" />
           <folding />
         </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/README.md">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.01875">
+          <caret line="1" column="41" selection-start-line="1" selection-start-column="41" selection-end-line="1" selection-end-column="41" />
+          <folding />
+        </state>
+      </provider>
+      <provider editor-type-id="MarkdownPreviewEditor">
+        <state />
       </provider>
     </entry>
   </component>
