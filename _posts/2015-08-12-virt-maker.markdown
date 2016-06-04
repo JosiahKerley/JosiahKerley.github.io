@@ -8,6 +8,7 @@ categories: projects
 Virt-Maker
 ==========
 
+
 ## Automated virtual machine build tool based around libguestfs.
 <center><script type="text/javascript" src="https://asciinema.org/a/awibga8841ar83rw9v5dvms6v.js" id="asciicast-awibga8841ar83rw9v5dvms6v" async data-autoplay="true"></script></center>
 

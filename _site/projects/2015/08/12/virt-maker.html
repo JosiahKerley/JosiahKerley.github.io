@@ -15,6 +15,7 @@
     <section class="page-header">
   <h1 class="project-name">Josiah Kerley</h1>
   <h2 class="project-tagline">Senior Cloud Engineer, Nerd, Etc...</h2>
+  <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
 </section>
 
     <section class="main-content">
@@ -22,6 +23,7 @@
       <h1 id="virt-maker">Virt-Maker</h1>
 
 <h2 id="automated-virtual-machine-build-tool-based-around-libguestfs">Automated virtual machine build tool based around libguestfs.</h2>
+<center><script type="text/javascript" src="https://asciinema.org/a/awibga8841ar83rw9v5dvms6v.js" id="asciicast-awibga8841ar83rw9v5dvms6v" async="" data-autoplay="true"></script></center>
 
 <p>I started <code class="highlighter-rouge">virt-maker</code> a while back, mostly to ease the creation of mutliple similar <code class="highlighter-rouge">QCOW</code> images for use in an <code class="highlighter-rouge">OpenStack</code> environment.
 I had used packer to accomplish this goal, as well as wrapping some CI goodness around <code class="highlighter-rouge">Foreman</code>.  I really needed a tool that could take
@@ -30,6 +32,8 @@ Enter LibGuestFS.  Using <code class="highlighter-rouge">libguestfs</code>, spec
 half the time as packer, and then loop through a few singleton steps and make multiple copies of images with all the right config-goodness.
 This got me thinking, I could use the <code class="highlighter-rouge">QCOW</code> external snapshot functionality to create a forking tree on a per-step basis that would allow
 me to create many different base/golden images from publicly available cloud images rapidly.</p>
+
+<center><script type="text/javascript" src="https://asciinema.org/a/8jhudgtq8pxi4luh5xxf8k5ft.js" id="asciicast-8jhudgtq8pxi4luh5xxf8k5ft" async="" data-autoplay="true"></script></center>
 
 <p>This is when I started <code class="highlighter-rouge">virt-maker</code> (https://github.com/JosiahKerley/virt-maker).  Over the course of about a week I was able to create a prototype
 tool that could take in a simple build spec and build host images.</p>
@@ -41,6 +45,8 @@ was already completed before and if so, start from that point.  Now we’re cook
 now after the first time it is run it get’s cached and is never needing to run again.  For a single image, using a pre-built cloud image has cut down the base
 image creation time by about half, but the real value is when I need to deploy several images from that base image.  Normally in <code class="highlighter-rouge">Foreman</code> or <code class="highlighter-rouge">packer</code>, this would
 take /forever/.</p>
+
+<center><script type="text/javascript" src="https://asciinema.org/a/bbvrrb4zop19e5i5zwemw6kzm.js" id="asciicast-bbvrrb4zop19e5i5zwemw6kzm" async="" data-autoplay="true"></script></center>
 
 <p>In one way it’s analogous to <code class="highlighter-rouge">docker</code>.  Docker cuts every intermediate step into snapshots and changes made during build time only have to execute since at the
 point in the process were the change was made. This allows for fast failure and so does <code class="highlighter-rouge">virt-maker</code>.</p>
