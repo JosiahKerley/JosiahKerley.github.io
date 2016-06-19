@@ -27,4 +27,4 @@ This allows for clean, hierarchical parameters.
 ## Installation
 <center><script type="text/javascript" src="https://asciinema.org/a/6rhe4dfryj6slfnoyij8j6lmo.js" id="asciicast-6rhe4dfryj6slfnoyij8j6lmo" async data-autoplay="true"></script></center>
 The installation is simple enough from git, using standard setuptools conventions.  I will be publishing on PYPI as "FileGenerator" soon as well.  Try it out.  Let me know what you think.
-I have the code up at https://github.com/JosiahKerley/python-filegen and it can be installed with `pip install https://github.com/JosiahKerley/python-filegen/archive/master.zip`.
+I have the code up at [GitHub]:https://github.com/JosiahKerley/python-filegen and it can be installed with `pip install https://github.com/JosiahKerley/python-filegen/archive/master.zip`.
