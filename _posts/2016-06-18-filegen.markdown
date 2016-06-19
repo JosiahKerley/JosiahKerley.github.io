@@ -9,14 +9,14 @@ FileGen
 =======
 
 
-## Universal text file generator
-<center><script type="text/javascript" src="https://asciinema.org/a/awibga8841ar83rw9v5dvms6v.js" id="8bbuyoewbs7q93o56cxjn4mn8" async data-autoplay="true"></script></center>
 
+## Universal text file generator
+<center><script type="text/javascript" src="https://asciinema.org/a/8bbuyoewbs7q93o56cxjn4mn8.js" id="asciicast-8bbuyoewbs7q93o56cxjn4mn8" async data-autoplay="true></script></center>
 FileGen is a text file generator that uses Jinja templates and YAML files to create files.  I created it because I kept running into the same problem, the need to have a 
 template tool to create config files, kickstarts, etc that did not rely on tools like ansible or puppet.  I just needed to take a namespace from YAML/JSON files and 
 Jinja templates (my language of choice) to render text files.
 
 
 ## Installation
-<center><script type="text/javascript" src="https://asciinema.org/a/awibga8841ar83rw9v5dvms6v.js" id="6rhe4dfryj6slfnoyij8j6lmo" async data-autoplay="true"></script></center>
+<center><script type="text/javascript" src="https://asciinema.org/a/6rhe4dfryj6slfnoyij8j6lmo.js" id="asciicast-6rhe4dfryj6slfnoyij8j6lmo" async data-autoplay="true"></script></center>
 The installation is simple enough from git, using standard setuptools conventions.  I will be publishing on PYPI as "FileGenerator" soon as well.
