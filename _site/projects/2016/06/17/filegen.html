@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <section class="page-header">
+  <h1 class="project-name">Josiah Kerley</h1>
+  <h2 class="project-tagline">Senior Cloud Engineer, Nerd, Etc...</h2>
+  <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+</section>
+
+    <section class="main-content">
+      
+      <h1 id="filegen">FileGen</h1>
+
+<h2 id="universal-text-file-generator">Universal text file generator</h2>
+<center><script type="text/javascript" src="https://asciinema.org/a/8bbuyoewbs7q93o56cxjn4mn8.js" id="asciicast-8bbuyoewbs7q93o56cxjn4mn8" async="" data-autoplay="true"></script></center>
+<p>FileGen is a text file generator that uses Jinja templates and YAML files to create files.  I created it because I kept running into the same problem, the need to have a 
+template tool to create config files, kickstarts, etc that did not rely on tools like ansible or puppet.  I just needed to take a namespace from YAML/JSON files and 
+Jinja templates (my language of choice) to render text files.</p>
+
+<h2 id="namespace-inheritance">Namespace inheritance</h2>
+<center><script type="text/javascript" src="https://asciinema.org/a/1gw58cp6qycg9ltsroli3j2go.js" id="asciicast-1gw58cp6qycg9ltsroli3j2go" async="" data-autoplay="true"></script></center>
+<p>FileGen can use multiple parameter files to load a chain into a single namespace when it comes time to render.  This is useful for things like kickstarts that have 
+one template that has a bunch of global parameters captured in it that are site-wide and also a host parameters file that will only add the bits specific to that host.
+This allows for clean, hierarchical parameters.</p>
+
+<h2 id="installation">Installation</h2>
+<center><script type="text/javascript" src="https://asciinema.org/a/6rhe4dfryj6slfnoyij8j6lmo.js" id="asciicast-6rhe4dfryj6slfnoyij8j6lmo" async="" data-autoplay="true"></script></center>
+<p>The installation is simple enough from git, using standard setuptools conventions.  I will be publishing on PYPI as “FileGenerator” soon as well.  Try it out.  Let me know what you think.
+I have the code up at [GitHub]:(https://github.com/JosiahKerley/python-filegen) and it can be installed with <code class="highlighter-rouge">pip install https://github.com/JosiahKerley/python-filegen/archive/master.zip</code>.</p>
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+  </body>
+</html>
