@@ -11,7 +11,7 @@ FileGen
 
 
 ## Universal text file generator
-<center><script type="text/javascript" src="https://asciinema.org/a/8bbuyoewbs7q93o56cxjn4mn8.js" id="asciicast-8bbuyoewbs7q93o56cxjn4mn8" async data-autoplay="true></script></center>
+<center><script type="text/javascript" src="https://asciinema.org/a/8bbuyoewbs7q93o56cxjn4mn8.js" id="asciicast-8bbuyoewbs7q93o56cxjn4mn8" async data-autoplay="true"></script></center>
 FileGen is a text file generator that uses Jinja templates and YAML files to create files.  I created it because I kept running into the same problem, the need to have a 
 template tool to create config files, kickstarts, etc that did not rely on tools like ansible or puppet.  I just needed to take a namespace from YAML/JSON files and 
 Jinja templates (my language of choice) to render text files.
