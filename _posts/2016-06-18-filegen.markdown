@@ -17,6 +17,13 @@ template tool to create config files, kickstarts, etc that did not rely on tools
 Jinja templates (my language of choice) to render text files.
 
 
+## Namespace inheritance
+<center><script type="text/javascript" src="https://asciinema.org/a/1gw58cp6qycg9ltsroli3j2go.js" id="asciicast-1gw58cp6qycg9ltsroli3j2go" async data-autoplay="true"></script></center>
+FileGen can use multiple parameter files to load a chain into a single namespace when it comes time to render.  This is useful for things like kickstarts that have 
+one template that has a bunch of global parameters captured in it that are site-wide and also a host parameters file that will only add the bits specific to that host.
+This allows for clean, hierarchical parameters.
+
+
 ## Installation
 <center><script type="text/javascript" src="https://asciinema.org/a/6rhe4dfryj6slfnoyij8j6lmo.js" id="asciicast-6rhe4dfryj6slfnoyij8j6lmo" async data-autoplay="true"></script></center>
-The installation is simple enough from git, using standard setuptools conventions.  I will be publishing on PYPI as "FileGenerator" soon as well.
+The installation is simple enough from git, using standard setuptools conventions.  I will be publishing on PYPI as "FileGenerator" soon as well.  Try it out.  Let me know what you think.
