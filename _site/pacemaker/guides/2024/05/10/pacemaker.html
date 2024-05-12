@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>Deploying an HAProxy on a Pacemaker Cluster</h2>
+<p class="meta">10 May 2024</p>
+
+<p><img src="/assets/img/other/three-men-in-a-line-pointing.png" alt="&quot;Three men in a line pointing&quot;" /></p>
+
+<p>In this guide, we’ll deploy a HA-HAProxy cluster on a Pacemaker cluster.</p>
+
+<h2 id="pre-requisites">Pre-requisites</h2>
+<p>This guide assumes you have a working Pacemaker cluster with a VIP and a web server deployed on it.
+See <a href="/pacemaker/guides/2024/05/07/pacemaker.html">this post</a> for a guide on how to deploy a Pacemaker cluster,
+<a href="/pacemaker/guides/2024/05/08/pacemaker.html">this post</a> for deploying nginx as an example web service, and
+<a href="/pacemaker/guides/2024/05/09/pacemaker.html">this post</a> for deploying a VIP.</p>
+
+<h3 id="all-nodes">All nodes</h3>
+
+<h4 id="install-haproxy">Install HAProxy</h4>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>dnf <span class="nb">install</span> <span class="nt">-y</span> haproxy
+</code></pre></div></div>
+<div class="codehider">
+toggle console output:
+<div class="hidecode">
+    <pre><code class="language-collapse">Dependencies resolved.
+================================================================================
+ Package         Architecture   Version                 Repository         Size
+================================================================================
+Installing:
+ haproxy         x86_64         2.4.22-3.el9_3          appstream         2.2 M
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total download size: 2.2 M
+Installed size: 6.6 M
+Downloading Packages:
+haproxy-2.4.22-3.el9_3.x86_64.rpm               311 kB/s | 2.2 MB     00:07    
+--------------------------------------------------------------------------------
+Total                                           294 kB/s | 2.2 MB     00:07     
+Running transaction check
+Transaction check succeeded.
+Running transaction test
+Transaction test succeeded.
+Running transaction
+  Preparing        :                                                        1/1 
+  Running scriptlet: haproxy-2.4.22-3.el9_3.x86_64                          1/1 
+  Installing       : haproxy-2.4.22-3.el9_3.x86_64                          1/1 
+  Running scriptlet: haproxy-2.4.22-3.el9_3.x86_64                          1/1 
+  Verifying        : haproxy-2.4.22-3.el9_3.x86_64                          1/1 
+
+Installed:
+  haproxy-2.4.22-3.el9_3.x86_64                                                 
+
+Complete!
+</code></pre>
+  </div>
+</div>
+
+<h4 id="configure-nginx-to-run-on-port-8080-as-a-backend">Configure nginx to run on port 8080 as a backend</h4>
+<p>Assuming you are using the nginx example mentioned before, you can simply change the line
+in /etc/nginx/nginx.conf from</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listen 80<span class="p">;</span>
+</code></pre></div></div>
+<p>to</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>listen 8080<span class="p">;</span>
+</code></pre></div></div>
+<p>and restart the nginx resource in Pacemaker</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>pcs resource restart nginx
+</code></pre></div></div>
+<p>Now add the ports to the firewall</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>firewall-cmd <span class="nt">--add-port</span><span class="o">=</span>8080/tcp <span class="nt">--permanent</span>
+<span class="nb">sudo </span>firewall-cmd <span class="nt">--reload</span>
+</code></pre></div></div>
+<p>As said before, in production these ports should only be open to the cluster’s firewall zone.</p>
+
+<h4 id="confgure-haproxy-as-a-simple-reverse-proxy">Confgure HAProxy as a simple reverse proxy</h4>
+<p>As a start, configure /etc/haproxy/haproxy.cfg as:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>global
+    log /dev/log local0
+    log /dev/log local1 notice
+    <span class="nb">chroot</span> /var/lib/haproxy
+    stats bind-process 1
+    user haproxy
+    group haproxy
+    daemon
+
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    <span class="nb">timeout </span>connect 5000
+    <span class="nb">timeout </span>client 50000
+    <span class="nb">timeout </span>server 50000
+
+frontend http_front
+    <span class="nb">bind </span>192.168.30.10:80
+    default_backend http_back
+
+backend http_back
+    balance roundrobin
+    server node1 node1:8080 check
+    server node2 node2:8080 check
+    server node3 node3:8080 check
+
+listen stats
+    <span class="nb">bind</span> :9000
+    stats <span class="nb">enable
+    </span>stats uri /
+    stats refresh 30s
+</code></pre></div></div>
+
+<h4 id="create-a-new-resource-for-haproxy">Create a new resource for HAProxy</h4>
+<p>For this resource we will create a systemd resource for HAProxy, but we will disable it for now.
+This is so we can create a colocation constraint with the VIP resource.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>pcs resource create haproxy systemd:haproxy op monitor <span class="nv">interval</span><span class="o">=</span>10s <span class="nt">--disabled</span>
+</code></pre></div></div>
+<div class="codehider">
+toggle console output:
+<div class="hidecode">
+    <pre><code class="language-collapse">Cluster name: democluster
+Cluster Summary:
+  * Stack: corosync (Pacemaker is running)
+  * Current DC: node2 (version 2.1.7-5.el9_4-0f7f88312) - partition with quorum
+  * Last updated: Sun May 12 06:06:12 2024 on node1
+  * Last change:  Sun May 12 06:05:23 2024 by root via root on node1
+  * 3 nodes configured
+  * 5 resource instances configured (1 DISABLED)
+
+Node List:
+  * Online: [ node1 node2 node3 ]
+
+Full List of Resources:
+  * Clone Set: nginx-clone [nginx]:
+    * Started: [ node1 node2 node3 ]
+  * vip (ocf:heartbeat:IPaddr2):         Started node3
+  * haproxy     (systemd:haproxy):       Stopped (disabled)
+
+Daemon Status:
+  corosync: active/disabled
+  pacemaker: active/disabled
+  pcsd: active/enabled
+</code></pre>
+  </div>
+</div>
+<p>Notice that the haproxy resource is disabled and stopped.</p>
+
+<h4 id="colocate-the-vip-and-haproxy-resources">Colocate the VIP and HAProxy resources</h4>
+<p>The following command will create a constraint that will make sure the VIP starts before HAProxy as well as
+ensuring that they run on the same node.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>pcs constraint colocation add haproxy with vip
+</code></pre></div></div>
+<p>Once the constraint is added, enable the HAProxy resource</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>pcs resource <span class="nb">enable </span>haproxy
+</code></pre></div></div>
+<p>You can verify that the constraint is in place by running</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>pcs status
+</code></pre></div></div>
+<div class="codehider">
+toggle console output:
+<div class="hidecode">
+    <pre><code class="language-collapse">Cluster name: democluster
+Cluster Summary:
+  * Stack: corosync (Pacemaker is running)
+  * Current DC: node2 (version 2.1.7-5.el9_4-0f7f88312) - partition with quorum
+  * Last updated: Sun May 12 06:10:29 2024 on node1
+  * Last change:  Sun May 12 06:08:06 2024 by root via root on node1
+  * 3 nodes configured
+  * 5 resource instances configured
+
+Node List:
+  * Online: [ node1 node2 node3 ]
+
+Full List of Resources:
+  * Clone Set: nginx-clone [nginx]:
+    * Started: [ node1 node2 node3 ]
+  * vip (ocf:heartbeat:IPaddr2):         Started node3
+  * haproxy     (systemd:haproxy):       Started node3
+
+Daemon Status:
+  corosync: active/disabled
+  pacemaker: active/disabled
+  pcsd: active/enabled
+</code></pre>
+  </div>
+</div>
+
+<h4 id="configure-the-private-firewall">Configure the private firewall</h4>
+<p>Allow the nodes in the cluster to reach the backend nginx servers.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>firewall-cmd <span class="nt">--add-port</span><span class="o">=</span>8080/tcp <span class="nt">--permanent</span>
+<span class="nb">sudo </span>firewall-cmd <span class="nt">--reload</span>
+</code></pre></div></div>
+<div class="codehider">
+toggle console output:
+<div class="hidecode">
+    <pre><code class="language-collapse">success
+success
+</code></pre>
+  </div>
+</div>
+
+<h4 id="configure-the-public-firewall">Configure the public firewall</h4>
+<p>In case the public http port was open before, we need to open the HAProxy port as well.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>firewall-cmd <span class="nt">--add-service</span><span class="o">=</span>http <span class="nt">--permanent</span>
+<span class="nb">sudo </span>firewall-cmd <span class="nt">--reload</span>
+</code></pre></div></div>
+
+<h4 id="configure-the-admin-only-firewall">Configure the admin-only firewall</h4>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>firewall-cmd <span class="nt">--add-port</span><span class="o">=</span>9000/tcp <span class="nt">--permanent</span>
+<span class="nb">sudo </span>firewall-cmd <span class="nt">--reload</span>
+</code></pre></div></div>
+<div class="codehider">
+toggle console output:
+<div class="hidecode">
+    <pre><code class="language-collapse">success
+success
+</code></pre>
+  </div>
+</div>
+
+<h3 id="testing">Testing</h3>
+
+<h4 id="checking-the-frontend">Checking the Frontend</h4>
+<p>Navigate to http://192.168.30.10/ (or whatever ip/port combo you chose) to see the HAProxy status page.</p>
+
+<h5 id="nginx-is-alive">Nginx is Alive</h5>
+<p><img src="/assets/img/posts/2024-05-10-pacemaker/at-least-one-backend-up.png" alt="&quot;Nginx test page&quot;" /></p>
+
+<h5 id="all-nginx-servers-are-down">All nginx Servers are Down</h5>
+<p><img src="/assets/img/posts/2024-05-10-pacemaker/all-backends-down.png" alt="&quot;Browser throwing a 503&quot;" /></p>
+
+<h4 id="haproxy-status-page">HAProxy Status Page</h4>
+<p>Navigate to http://192.168.30.10:9000/ (or whatever ip/port combo you chose) to see the HAProxy status page.</p>
+
+<h5 id="haproxy-shows-the-backend-servers-happy">HAProxy Shows the Backend Servers Happy</h5>
+<p><img src="/assets/img/posts/2024-05-10-pacemaker/haproxy-can-see-backends.png" alt="&quot;HAProxy stats page showing all green.&quot;" /></p>
+
+<h5 id="haproxy-shows-the-backend-servers-down">HAProxy Shows the Backend Servers Down</h5>
+<p><img src="/assets/img/posts/2024-05-10-pacemaker/haproxy-cant-see-backends.png" alt="&quot;HAProxy stats page showing all green.&quot;" /></p>
+
+
+
+
+
+
+  <h2>Related posts</h2>
+  
+    
+  
+    
+  
+    
+      <h3>pacemaker</h3>
+      <ul>
+        
+          
+        
+          
+            <li>
+              <a href="/pacemaker/guides/2024/05/09/pacemaker.html">Deploying a VIP on a Pacemaker Cluster</a> - <span class="post-date">09 May 2024</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/pacemaker/guides/2024/05/08/pacemaker.html">Deploying a Simple High-Availability Nginx Service with Pacemaker</a> - <span class="post-date">08 May 2024</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/pacemaker/guides/2024/05/07/pacemaker.html">Setting up a basic Pacemaker cluster on Rocky Linux 9</a> - <span class="post-date">07 May 2024</span>
+            </li>
+          
+        
+      </ul>
+    
+  
+    
+  
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="http://localhost:4000">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

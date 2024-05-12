@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  
+
   <head>
   <meta charset="UTF-8">
   <title>Josiah Kerley</title>
@@ -12,32 +12,138 @@
 </head>
 
   <body>
-    <section class="page-header">
-  <h1 class="project-name">Josiah Kerley</h1>
-  <h2 class="project-tagline">Senior Cloud Engineer, Nerd, Etc...</h2>
-  <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
-</section>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
 
     <section class="main-content">
-      
+
       <div id="home">
-  <h1>Blog Posts</h1>
-  <ul class="posts">
-    
-      <li><span>17 Jun 2016</span> &raquo; <a href="/projects/2016/06/17/filegen.html">FileGen</a></li>
-    
-      <li><span>12 Aug 2015</span> &raquo; <a href="/projects/2015/08/12/virt-maker.html">Virt-Maker</a></li>
-    
-  </ul>
+  <h1>Jo's Home</h1>
+  <p>This is where I share my experiences as a cloud engineer and software developer, with a special interest in self-hosted clouds, systems engineering, and enterprise software. But that's not all – I also love playing around with electronics, Arduino, home automation, and music.</p>
+  <p>The common theme in all my projects is automation – making things work smarter and more efficiently. Here on this blog, you'll find detailed accounts of the various tech projects I've worked on, complete with practical examples, code snippets, and step-by-step instructions to help you get started or take your ideas further.</p>
+  <p>So come along for the ride as we explore the power of automation, uncover new possibilities in cloud engineering and systems design, and celebrate the endless potential of software development!</p>
+  <br>
+  <hr>
+  <br>
+  <br>
+  <br>
+<ul class="posts">
+
+  <li>
+    <a href="/pacemaker/guides/2024/05/10/pacemaker.html" style="text-decoration: none; color: inherit;">
+      <h2>Deploying an HAProxy on a Pacemaker Cluster</h2>
+      <span>10 May 2024</span> &raquo;
+      <p>In this guide, we’ll deploy a HA-HAProxy cluster on a Pacemaker cluster. Pre-requisites This guide assumes you have a working Pacemaker cluster with a VIP and a web server deployed on it. See this post for a guide on how to deploy a Pacemaker cluster, this post for deploying nginx...</p>
+    </a>
+    <br>
+    <hr>
+    <br>
+  </li>
+
+  <li>
+    <a href="/pacemaker/guides/2024/05/09/pacemaker.html" style="text-decoration: none; color: inherit;">
+      <h2>Deploying a VIP on a Pacemaker Cluster</h2>
+      <span>09 May 2024</span> &raquo;
+      <p>In this guide, I will show you how to configure a virtual ip address (VIP) on a pacemaker cluster. This VIP will float between the nodes in the cluster and allow users to connect to a single IP address to access the service. Pre-requisites This guide assumes you have a...</p>
+    </a>
+    <br>
+    <hr>
+    <br>
+  </li>
+
+  <li>
+    <a href="/pacemaker/guides/2024/05/08/pacemaker.html" style="text-decoration: none; color: inherit;">
+      <h2>Deploying a Simple High-Availability Nginx Service with Pacemaker</h2>
+      <span>08 May 2024</span> &raquo;
+      <p>In this guide, I will show you how to deploy nginx and it’s default page as a high-availability service using Pacemaker. Pre-requisites This guide assumes you have a basic understanding of Pacemaker and have a cluster already set up. If you don’t have a cluster set up, you can follow...</p>
+    </a>
+    <br>
+    <hr>
+    <br>
+  </li>
+
+  <li>
+    <a href="/pacemaker/guides/2024/05/07/pacemaker.html" style="text-decoration: none; color: inherit;">
+      <h2>Setting up a basic Pacemaker cluster on Rocky Linux 9</h2>
+      <span>07 May 2024</span> &raquo;
+      <p>TL;DR Pacemaker is used to automatically manage resource such as systemd units, IP addresses, and filesystems for a cluster. What is Pacemaker? Deploying All nodes Enable HA repository Install pacemaker packages Start pcsd service Set password for hacluster user Open firewall ports First node only Authenticate pcs with the cluster...</p>
+    </a>
+    <br>
+    <hr>
+    <br>
+  </li>
+
+  <li>
+    <a href="/virt-maker/projects/2024/05/06/virt-maker.html" style="text-decoration: none; color: inherit;">
+      <h2>Virt-Maker v1 Has Been Launched!</h2>
+      <span>06 May 2024</span> &raquo;
+      <p>After nearly a decade of fiddling and transforming the project, I am proud to announce the launch of Virt-Maker v1! Virt-Maker is a project that allows you to create virtual machines with a simple build specs. It is designed to be simple to use and easy to understand. It is...</p>
+    </a>
+    <br>
+    <hr>
+    <br>
+  </li>
+
+  <li>
+    <a href="/virt-maker/projects/2024/05/05/virt-maker.html" style="text-decoration: none; color: inherit;">
+      <h2>Revisiting Virt-Maker</h2>
+      <span>05 May 2024</span> &raquo;
+      <p>It has been quite a long time since I pushed updates to Virt-Maker, but over the years and in the background I have been modifying and updating the codebase. There has been a lot of changes, I now have it in a state where I think the idea is solidified....</p>
+    </a>
+    <br>
+    <hr>
+    <br>
+  </li>
+
+  <li>
+    <a href="/projects/2016/06/17/filegen.html" style="text-decoration: none; color: inherit;">
+      <h2>FileGen</h2>
+      <span>17 Jun 2016</span> &raquo;
+      <p>Universal text file generator FileGen is a text file generator that uses Jinja templates and YAML files to create files. I created it because I kept running into the same problem, the need to have a template tool to create config files, kickstarts, etc that did not rely on tools...</p>
+    </a>
+    <br>
+    <hr>
+    <br>
+  </li>
+
+  <li>
+    <a href="/virt-maker/projects/2015/08/12/virt-maker.html" style="text-decoration: none; color: inherit;">
+      <h2>Virt-Maker Project</h2>
+      <span>12 Aug 2015</span> &raquo;
+      <p>Automated virtual machine build tool based around libguestfs. I started virt-maker a while back, mostly to ease the creation of mutliple similar QCOW images for use in an OpenStack environment. I had used packer to accomplish this goal, as well as wrapping some CI goodness around Foreman. I really needed...</p>
+    </a>
+    <br>
+    <hr>
+    <br>
+  </li>
+
+</ul>
 </div>
 
       <footer class="site-footer">
-  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-owner"><a href="http://localhost:4000">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
   <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
 </footer>
 
 
     </section>
 
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
   </body>
 </html>

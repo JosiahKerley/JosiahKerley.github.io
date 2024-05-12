@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>Deploying a VIP on a Pacemaker Cluster</h2>
+<p class="meta">09 May 2024</p>
+
+<p><img src="/assets/img/other/three-men-playing-ball.png" alt="&quot;Three men throwing a ball back and forth in green grass field as seen from above.&quot;" /></p>
+
+<p>In this guide, I will show you how to configure a virtual ip address (VIP) on a pacemaker cluster.
+This VIP will float between the nodes in the cluster and allow users to connect to a single IP address to access the service.</p>
+
+<h2 id="pre-requisites">Pre-requisites</h2>
+<p>This guide assumes you have a basic understanding of Pacemaker and have a cluster already set up.
+If you don’t have a cluster set up, you can follow my guide here in <a href="/pacemaker/guides/2024/05/07/pacemaker.html#deploy-pacemaker-cluster">this post</a></p>
+
+<p>You will also need a static ip address that is not in use on your network.</p>
+
+<h2 id="deploying-a-vip">Deploying a VIP</h2>
+<p>In this example, I will be using the vip of <code class="language-plaintext highlighter-rouge">192.168.30.10/24</code>.
+You should replace this with an ip address thatis not in use on your network.</p>
+
+<h3 id="checking-to-make-sure-the-vip-is-not-in-use">Checking to make sure the VIP is not in use</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping 192.168.30.10
+</code></pre></div></div>
+<div class="codehider">
+toggle console output:
+<div class="hidecode">
+    <pre><code class="language-collapse">PING 192.168.30.10 (192.168.30.10) 56(84) bytes of data.
+From 192.168.30.186 icmp_seq=1 Destination Host Unreachable
+From 192.168.30.186 icmp_seq=2 Destination Host Unreachable
+From 192.168.30.186 icmp_seq=3 Destination Host Unreachable
+^C
+--- 192.168.30.10 ping statistics ---
+4 packets transmitted, 0 received, +3 errors, 100% packet loss, time 3055ms
+</code></pre>
+  </div>
+</div>
+<p>If nothing returns, then the ip address may not be in use.  I am assuming you are deploying this in a lab environment and not in production.
+Obviously, in production, you should be getting an ip address from IPAM or your network team.</p>
+
+<h3 id="first-node-only">First node only</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>pcs resource create vip ocf:heartbeat:IPaddr2 <span class="nv">ip</span><span class="o">=</span>192.168.30.10 <span class="nv">cidr_netmask</span><span class="o">=</span>24 op monitor <span class="nv">interval</span><span class="o">=</span>10s
+</code></pre></div></div>
+<p>Let’s break down the command:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">sudo pcs resource create vip</code> - This creates a new resource named <code class="language-plaintext highlighter-rouge">vip</code></li>
+  <li><code class="language-plaintext highlighter-rouge">ocf:heartbeat:IPaddr2</code> - This tells pacemaker that the resource is an IP address resource</li>
+  <li><code class="language-plaintext highlighter-rouge">ip=192.168.30.10</code> - This tells pacemaker to use the ip address</li>
+  <li><code class="language-plaintext highlighter-rouge">cidr_netmask=24</code> - This tells pacemaker to use a /24 netmask</li>
+  <li><code class="language-plaintext highlighter-rouge">op monitor interval=10s</code> - This tells pacemaker to check the status of the resource every 10 seconds</li>
+</ul>
+
+<h3 id="verify-the-vip-is-running-a-node">Verify the VIP is running a node</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>pcs status
+</code></pre></div></div>
+<div class="codehider">
+toggle console output:
+<div class="hidecode">
+    <pre><code class="language-collapse">Cluster name: democluster
+Cluster Summary:
+  * Stack: corosync (Pacemaker is running)
+  * Current DC: node2 (version 2.1.7-5.el9_4-0f7f88312) - partition with quorum
+  * Last updated: Sun May 12 05:42:43 2024 on node1
+  * Last change:  Sun May 12 05:42:32 2024 by root via root on node1
+  * 3 nodes configured
+  * 4 resource instances configured
+
+Node List:
+  * Online: [ node1 node2 node3 ]
+
+Full List of Resources:
+  * Clone Set: nginx-clone [nginx]:
+    * Started: [ node1 node2 node3 ]
+  * vip (ocf:heartbeat:IPaddr2):         Started node1
+
+Daemon Status:
+  corosync: active/disabled
+  pacemaker: active/disabled
+  pcsd: active/enabled
+</code></pre>
+  </div>
+</div>
+
+<h3 id="testing-the-vip-with-ping">Testing the VIP with ping</h3>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ping 192.168.30.10
+</code></pre></div></div>
+<div class="codehider">
+toggle console output:
+<div class="hidecode">
+    <pre><code class="language-collapse">PING 192.168.30.10 (192.168.30.10) 56(84) bytes of data.
+64 bytes from 192.168.30.10: icmp_seq=1 ttl=64 time=0.082 ms
+64 bytes from 192.168.30.10: icmp_seq=2 ttl=64 time=0.067 ms
+64 bytes from 192.168.30.10: icmp_seq=3 ttl=64 time=0.069 ms
+^C
+--- 192.168.30.10 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2074ms
+rtt min/avg/max/mdev = 0.067/0.072/0.082/0.006 ms
+</code></pre>
+  </div>
+</div>
+<p>Now that the VIP resource is up, you should be able to ping the ip address from any node in the cluster.</p>
+
+
+
+
+
+
+  <h2>Related posts</h2>
+  
+    
+  
+    
+  
+    
+      <h3>pacemaker</h3>
+      <ul>
+        
+          
+            <li>
+              <a href="/pacemaker/guides/2024/05/10/pacemaker.html">Deploying an HAProxy on a Pacemaker Cluster</a> - <span class="post-date">10 May 2024</span>
+            </li>
+          
+        
+          
+        
+          
+            <li>
+              <a href="/pacemaker/guides/2024/05/08/pacemaker.html">Deploying a Simple High-Availability Nginx Service with Pacemaker</a> - <span class="post-date">08 May 2024</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/pacemaker/guides/2024/05/07/pacemaker.html">Setting up a basic Pacemaker cluster on Rocky Linux 9</a> - <span class="post-date">07 May 2024</span>
+            </li>
+          
+        
+      </ul>
+    
+  
+    
+  
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="http://localhost:4000">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

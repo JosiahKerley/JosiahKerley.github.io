@@ -254,3 +254,55 @@ a {
 
 .site-footer-credits {
   color: #819198; }
+
+.post-date {
+  color: lightgray;
+  font-style: italic;
+}
+
+#markdown-toc {
+  border: 1px solid #c0c0c0;
+  border-radius: 10px; /* This will make the box rounded */
+  box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.3), inset 2px 2px 5px rgba(0, 0, 0, 0.1); /* This will add a drop and inset shadow */
+  padding: 10px; /* Add some padding */
+  margin: 30px 0; /* Add some margin */
+  width: calc(70% + 10px); /* Make the box the same width as the ul plus 10px */
+}
+
+#markdown-toc li::before {
+  content: "> ";
+}
+#markdown-toc li {
+  list-style-type: none;
+}
+
+#markdown-toc li::before {
+  content: "> ";
+}
+
+//.scrollable {
+//  max-height: 10;
+//  overflow: scroll;
+//}
+
+.hidecode {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.2s ease-out; /* optional for a smooth transition */
+}
+
+.showcode {
+  max-height: 1000px;
+  transition: max-height 0.2s ease-in; /* optional for a smooth transition */
+  overflow-y: scroll;
+}
+
+.codehider {
+  background-color: #f1f1f1;
+  color: darkgrey;
+  padding: 10px;
+  margin: 10px 0;
+  font-family: 'Courier New', Courier, monospace;
+  font-style: italic;
+  font-size: 0.8em;
+}

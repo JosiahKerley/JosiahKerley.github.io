@@ -5,3 +5,32 @@ layout: default
 <p class="meta">{{ page.date | date_to_string }}</p>
 
 {{ content }}
+
+{% assign related_posts = 0 %}
+{% for category in site.categories %}
+  {% if category[0] == page.categories[0] %}
+    {% for post in category[1] %}
+      {% if post.url != page.url %}
+        {% assign related_posts = related_posts | plus: 1 %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
+
+{% if related_posts >= 1 %}
+  <h2>Related posts</h2>
+  {% for category in site.categories %}
+    {% if category[0] == page.categories[0] %}
+      <h3>{{ category[0] }}</h3>
+      <ul>
+        {% for post in category[1] %}
+          {% if post.url != page.url %}
+            <li>
+              <a href="{{ site.baseurl }}{{ post.url }}">{{ post.title }}</a> - <span class="post-date">{{ post.date | date_to_string }}</span>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    {% endif %}
+  {% endfor %}
+{% endif %}

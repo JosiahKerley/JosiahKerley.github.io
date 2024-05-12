@@ -1,14 +1,9 @@
 ---
-layout: default
+layout: post
 title:  "FileGen"
 date:   2016-06-18 00:00:00
 categories: projects
 ---
-
-FileGen
-=======
-
-
 
 ## Universal text file generator
 <center><script type="text/javascript" src="https://asciinema.org/a/8bbuyoewbs7q93o56cxjn4mn8.js" id="asciicast-8bbuyoewbs7q93o56cxjn4mn8" async data-autoplay="true"></script></center>

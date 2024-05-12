@@ -1,18 +1,30 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  
+
   {% include head.html %}
 
   <body>
     {% include page-header.html %}
 
     <section class="main-content">
-      
+
       {{ content }}
 
       {% include page-footer.html %}
 
     </section>
 
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
   </body>
 </html>

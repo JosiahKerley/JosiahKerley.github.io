@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  
+
   <head>
   <meta charset="UTF-8">
   <title>Josiah Kerley</title>
@@ -12,15 +12,18 @@
 </head>
 
   <body>
-    <section class="page-header">
-  <h1 class="project-name">Josiah Kerley</h1>
-  <h2 class="project-tagline">Senior Cloud Engineer, Nerd, Etc...</h2>
-  <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
-</section>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
 
     <section class="main-content">
-      
-      <h1 id="filegen">FileGen</h1>
+
+      <h2>FileGen</h2>
+<p class="meta">17 Jun 2016</p>
 
 <h2 id="universal-text-file-generator">Universal text file generator</h2>
 <center><script type="text/javascript" src="https://asciinema.org/a/8bbuyoewbs7q93o56cxjn4mn8.js" id="asciicast-8bbuyoewbs7q93o56cxjn4mn8" async="" data-autoplay="true"></script></center>
@@ -37,16 +40,69 @@ This allows for clean, hierarchical parameters.</p>
 <h2 id="installation">Installation</h2>
 <center><script type="text/javascript" src="https://asciinema.org/a/6rhe4dfryj6slfnoyij8j6lmo.js" id="asciicast-6rhe4dfryj6slfnoyij8j6lmo" async="" data-autoplay="true"></script></center>
 <p>The installation is simple enough from git, using standard setuptools conventions.  I will be publishing on PYPI as “FileGenerator” soon as well.  Try it out.  Let me know what you think.
-I have the code up at <a href="https://github.com/JosiahKerley/python-filegen">https://github.com/JosiahKerley/python-filegen</a> and it can be installed with <code class="highlighter-rouge">pip install https://github.com/JosiahKerley/python-filegen/archive/master.zip</code>.</p>
+I have the code up at <a href="https://github.com/JosiahKerley/python-filegen">https://github.com/JosiahKerley/python-filegen</a> and it can be installed with <code class="language-plaintext highlighter-rouge">pip install https://github.com/JosiahKerley/python-filegen/archive/master.zip</code>.</p>
+
+
+
+
+
+
+  <h2>Related posts</h2>
+  
+    
+  
+    
+      <h3>projects</h3>
+      <ul>
+        
+          
+            <li>
+              <a href="/virt-maker/projects/2024/05/06/virt-maker.html">Virt-Maker v1 Has Been Launched!</a> - <span class="post-date">06 May 2024</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/virt-maker/projects/2024/05/05/virt-maker.html">Revisiting Virt-Maker</a> - <span class="post-date">05 May 2024</span>
+            </li>
+          
+        
+          
+        
+          
+            <li>
+              <a href="/virt-maker/projects/2015/08/12/virt-maker.html">Virt-Maker Project</a> - <span class="post-date">12 Aug 2015</span>
+            </li>
+          
+        
+      </ul>
+    
+  
+    
+  
+    
+  
 
 
       <footer class="site-footer">
-  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-owner"><a href="http://localhost:4000">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
   <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
 </footer>
 
 
     </section>
 
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
   </body>
 </html>

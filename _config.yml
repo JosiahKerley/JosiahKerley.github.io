@@ -1,9 +1,8 @@
 # Setup
 title:        Josiah Kerley
-tagline:      Senior Cloud Engineer, Nerd, Etc...
+tagline:      Cloud Engineer, Developer, Maker
 baseurl:      ""
 commonurl:    "JosiahKerley.io"
-paginate:     1
 
 # About/contact
 author:
@@ -14,8 +13,9 @@ author:
 
 # Gems
 gems:
-  - jekyll-paginate
   - jekyll-asciinema
 
 #Others
 markdown: kramdown
+
+excerpt_separator: <!--more-->
