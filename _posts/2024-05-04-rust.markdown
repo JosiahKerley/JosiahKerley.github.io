@@ -1,0 +1,47 @@
+---
+layout: post
+title:  "Experimenting with Tauri"
+date:   2024-05-04 19:51:00
+categories:
+  - rust
+  - tauri
+  - vdi
+  - kiosk
+  - experiment
+---
+!["A kiosk in a store with folks walking by."](/assets/img/other/raspberry-pi-kiosk.png)
+
+I've been toying around with the idea of creating a toolkit of sorts for creating kios based deployments
+for Raspberry Pi's on and off again for a while.  My brother and I have had a fascination with thin clients
+and specifically using the Raspberry Pi as the hardware platform.  I'm no stranger to the Raspberry Pi (I think
+I still have the original one that I accidentally fried hiding somewhere in my office) and it's starting to feel
+like it might be a viable platform for a project I've been thinking about.
+
+
+## What I want to build
+I want to make an appliance image that can be built ahead of time and when booted, will launch a GUI application
+on a minimal desktop environment.  The application must be fully captive of the system as far as user interaction,
+but also minimally authorized to do what it needs to do.
+
+Build a GUI app, have a build toolchain create an image with some basic network configuration and the app pre-installed.
+
+Just Work (tm)
+
+
+## Why Tauri?
+My first kneejerk reaction was to build an app in Qt, but I haven't really used it in anger since v3.
+The second thought was to use Swing, but similar to Qt, I haven't used it in a good long while.
+I toyed around with Electron a bit, but the backend lang was javascript (though nowadays I could use typescript)
+
+That's when I stumbled upon Tauri.  It's a Rust based framework for building desktop applications similar in vein to Electron.
+You don't get the nice XML tools for building the UI like in Qt, but you can use web technologies to build the UI.
+
+So far that's more or less the same as Electron, but the big difference is that Tauri is that the backend is Rust.
+
+
+## Targeting an idea
+So, I think what I want to do use Tauri and Vue.js to build a simple application that a user can log into
+and connect to a VDI.  I'm not going to go down the rabbit hole of implementing a vnc/rdp/spice/whatever,
+but rather make the app a gossamer thin layer between a user sitting at a screen and a remote viewin application.
+
+PiVDI?  I dunno, I'll think of a name later.

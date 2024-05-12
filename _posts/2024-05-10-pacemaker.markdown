@@ -123,6 +123,11 @@ listen stats
     stats refresh 30s
 ```
 
+#### Ensuring that systemd does not manage the HAProxy service
+```bash
+sudo systemctl disable haproxy --now
+```
+
 #### Create a new resource for HAProxy
 For this resource we will create a systemd resource for HAProxy, but we will disable it for now.
 This is so we can create a colocation constraint with the VIP resource.
@@ -245,7 +250,7 @@ success
 ### Testing
 
 #### Checking the Frontend
-Navigate to http://192.168.30.10/ (or whatever ip/port combo you chose) to see the HAProxy status page.
+Navigate to http://192.168.30.10/ (or whatever ip/port combo you chose) to see the nginx test page.
 
 ##### Nginx is Alive
 !["Nginx test page"](/assets/img/posts/2024-05-10-pacemaker/at-least-one-backend-up.png)

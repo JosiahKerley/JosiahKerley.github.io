@@ -12,4 +12,4 @@ categories:
 After nearly a decade of fiddling and transforming the project, I am proud to announce the launch of Virt-Maker v1!
 Virt-Maker is a project that allows you to create virtual machines with a simple build specs. 
 It is designed to be simple to use and easy to understand.  It is also designed to be extensible and flexible.
-The project is written in Python and is open-source.  Check it out at https://github.com/JosiahKerley/virt-maker and let me know what you think!
+The project is written in Python and is open-source.  Check it out at [Check out my project here](https://github.com/JosiahKerley/virt-maker) and let me know what you think!

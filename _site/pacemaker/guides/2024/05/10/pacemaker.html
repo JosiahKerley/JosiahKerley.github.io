@@ -133,6 +133,10 @@ listen stats
     stats refresh 30s
 </code></pre></div></div>
 
+<h4 id="ensuring-that-systemd-does-not-manage-the-haproxy-service">Ensuring that systemd does not manage the HAProxy service</h4>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>systemctl disable haproxy <span class="nt">--now</span>
+</code></pre></div></div>
+
 <h4 id="create-a-new-resource-for-haproxy">Create a new resource for HAProxy</h4>
 <p>For this resource we will create a systemd resource for HAProxy, but we will disable it for now.
 This is so we can create a colocation constraint with the VIP resource.</p>
@@ -244,7 +248,7 @@ success
 <h3 id="testing">Testing</h3>
 
 <h4 id="checking-the-frontend">Checking the Frontend</h4>
-<p>Navigate to http://192.168.30.10/ (or whatever ip/port combo you chose) to see the HAProxy status page.</p>
+<p>Navigate to http://192.168.30.10/ (or whatever ip/port combo you chose) to see the nginx test page.</p>
 
 <h5 id="nginx-is-alive">Nginx is Alive</h5>
 <p><img src="/assets/img/posts/2024-05-10-pacemaker/at-least-one-backend-up.png" alt="&quot;Nginx test page&quot;" /></p>
@@ -261,12 +265,30 @@ success
 <h5 id="haproxy-shows-the-backend-servers-down">HAProxy Shows the Backend Servers Down</h5>
 <p><img src="/assets/img/posts/2024-05-10-pacemaker/haproxy-cant-see-backends.png" alt="&quot;HAProxy stats page showing all green.&quot;" /></p>
 
+<br>
+
+
+
+<!-- Related posts -->
 
 
 
 
-
+<br>
+<hr>
   <h2>Related posts</h2>
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
   
     
   
@@ -301,6 +323,61 @@ success
   
     
   
+
+
+
+
+<!-- Next and previous posts -->
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+        
+        
+        
+  
+
+  
+
+
+
+
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  
+    
+      <a class="prev-post" href="/pacemaker/guides/2024/05/09/pacemaker.html">&larr; Deploying a VIP on a Pacemaker Cluster</a>
+    
+  
+  
+    
+      <a class="next-post" href="/">Home &rarr;</a>
+    
+  
+</div>
+
 
 
       <footer class="site-footer">

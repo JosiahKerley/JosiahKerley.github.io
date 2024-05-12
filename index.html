@@ -13,13 +13,21 @@ title: {{ site.name }}
   <br>
   <br>
   <br>
+
 <ul class="posts">
 {% for post in site.posts %}
   <li>
     <a href="{{ site.baseurl }}{{ post.url }}" style="text-decoration: none; color: inherit;">
       <h2>{{ post.title }}</h2>
       <span>{{ post.date | date_to_string }}</span> &raquo;
-      <p>{{ post.content | strip_html | truncatewords: 50 }}</p>
+      <div style="display: flex;">
+  {% if post.content contains '<img src="' %}
+    {% assign img_parts = post.content | split: '<img src="' %}
+    {% assign img_url = img_parts[1] | split: '"' | first %}
+        <img src="{{ img_url }}" style="width: 128px; height: 128px; object-fit: cover; margin-right: 10px;">
+  {% endif %}
+        <p>{{ post.content | strip_html | truncatewords: 50 }}</p>
+      </div>
     </a>
     <br>
     <hr>

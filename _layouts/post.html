@@ -5,7 +5,11 @@ layout: default
 <p class="meta">{{ page.date | date_to_string }}</p>
 
 {{ content }}
+<br>
 
+
+
+<!-- Related posts -->
 {% assign related_posts = 0 %}
 {% for category in site.categories %}
   {% if category[0] == page.categories[0] %}
@@ -18,6 +22,8 @@ layout: default
 {% endfor %}
 
 {% if related_posts >= 1 %}
+<br>
+<hr>
   <h2>Related posts</h2>
   {% for category in site.categories %}
     {% if category[0] == page.categories[0] %}
@@ -34,3 +40,52 @@ layout: default
     {% endif %}
   {% endfor %}
 {% endif %}
+
+
+
+<!-- Next and previous posts -->
+{% assign next_post = nil %}
+{% assign prev_post = nil %}
+{% for category in site.categories %}
+  {% if category[0] == page.categories[0] %}
+    {% for post in category[1] %}
+      {% if post.url == page.url %}
+        {% assign prev_index = forloop.index %}
+        {% if prev_index < category[1].size %}
+          {% assign prev_post = category[1][prev_index] %}
+        {% endif %}
+        {% break %}
+      {% endif %}
+      {% assign next_post = post %}
+    {% endfor %}
+  {% endif %}
+{% endfor %}
+
+{% if prev_post == nil %}
+  {% assign prev_post = site.posts.last %}
+{% endif %}
+{% if next_post == nil %}
+  {% assign next_post = site.posts.first %}
+{% endif %}
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  {% if prev_post != nil %}
+    {% if prev_post.url == page.url %}
+      <a class="prev-post" href="/">&larr; Home</a>
+    {% else %}
+      <a class="prev-post" href="{{ site.baseurl }}{{ prev_post.url }}">&larr; {{ prev_post.title }}</a>
+    {% endif %}
+  {% endif %}
+  {% if next_post != nil %}
+    {% if next_post.url == page.url %}
+      <a class="next-post" href="/">Home &rarr;</a>
+    {% else %}
+      <a class="next-post" href="{{ site.baseurl }}{{ next_post.url }}">{{ next_post.title }} &rarr;</a>
+    {% endif %}
+  {% endif %}
+</div>
+

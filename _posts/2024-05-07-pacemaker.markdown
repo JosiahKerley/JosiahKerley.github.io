@@ -11,7 +11,7 @@ toc: true
 
 ## TL;DR
 {: .no_toc }
-Pacemaker is used to automatically manage resource such as systemd units, IP addresses, and filesystems for a cluster.
+Pacemaker is used to automatically manage resources such as systemd units, IP addresses, and filesystems for a cluster.
 
 * TOC
 {:toc}

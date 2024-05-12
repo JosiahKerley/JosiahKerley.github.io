@@ -6,6 +6,7 @@ categories:
   - virt-maker
   - projects
 ---
+!["Getting back on the horse"](/assets/img/other/getting-back-on-the-horse.png)
 
 It has been quite a long time since I pushed updates to Virt-Maker, but over the years and in the background I have been
 modifying and updating the codebase.  There has been a lot of changes, I now have it in a state where I think the idea

@@ -1,0 +1,16 @@
+---
+layout: post
+title:  "Differencial Engine No. 1"
+date:   2024-01-01 12:00:00
+categories:
+  - musings
+---
+
+
+!["Ada Lovelace, Charles Babbage, and a gross of cabbage."](/assets/img/other/ada-babbage-and-cabbage.png)
+
+
+200 years ago this year, the Difference Engine No. 1 began to be built.
+Charles Babbage began work on the machine that would go on to serve as the foundation for computers as we know it.
+At the same time Ada Lovelace invented the technology that would go on to autocorrect his name to the wrong word constantly.
+Here's to you, Ada Lovelace and Charles Cabbage.
