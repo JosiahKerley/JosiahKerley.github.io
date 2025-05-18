@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>Virt-Maker Lightning Talk</h2>
+<p class="meta">14 Feb 2025</p>
+
+<center><iframe width="1024" height="768" src="http://www.youtube.com/embed/hIJjJHF5ehE" frameborder="0" allowfullscreen=""></iframe></center>
+
+<p>In this lightning talk, I present the Virt-Maker project.</p>
+
+<p>Virt-Maker, a disk image building tool for GNU/Linux that uses snapshots for aggressive caching and fast turnaround using simple procedural code.
+In traditional virtual machine infrastructure you may find yourself manually installing an iso for golden image creation just as you would on bare metal.
+But the problem you run into is inconsistent manual builds and wasted time even when a golden image is created and used as a template for cloning from.
+Virt-maker provides a way to define input sources such as generic cloud images, Virt-builder images, or even isos consistently and quickly by declaring your build steps with parameters using a simple and readable YAML syntax.</p>
+
+<p>Like a blueprint that automatically builds all your traditional Vms, cloud images, and even source images for disk based baremetal deploying or booting from iscsi.</p>
+
+<p>It is free and open source and writen in python and can installed on a distro like Rockylinux with just a few steps</p>
+
+<h2 id="installation-on-gnulinux-system-with-virtualization-support">Installation on GNU/Linux system with virtualization support</h2>
+
+<p>For this demo, let’s run it in podman.  Start the podman instance with rocky.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>podman run <span class="se">\</span>
+  <span class="nt">--privileged</span> <span class="se">\</span>
+  <span class="nt">--rm</span> <span class="se">\</span>
+  <span class="nt">-it</span> <span class="se">\</span>
+    rockylinux:9 <span class="se">\</span>
+      /bin/bash
+</code></pre></div></div>
+
+<p>Install EPEL.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dnf <span class="nb">install</span> <span class="nt">-y</span> epel-release
+</code></pre></div></div>
+
+<p>Install the preq packages.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>dnf <span class="nb">install</span> <span class="nt">-y</span> python python-pip qemu-kvm guestfs-tools wget xz lz4 pv vim
+</code></pre></div></div>
+
+<p>Install virt-maker.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip <span class="nb">install</span> <span class="se">\</span>
+  https://github.com/JosiahKerley/virt-maker/archive/refs/heads/master.zip
+</code></pre></div></div>
+
+<h2 id="creating-and-building-a-spec">Creating and building a spec</h2>
+
+<p>Create a YAML file that pulls down the Rocky 9 generic cloud image, installs some packages, and exports a qcow2 image.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>vim virtmaker.yml
+</code></pre></div></div>
+
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">import</span><span class="pi">:</span>
+    <span class="na">download</span><span class="pi">:</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+        <span class="s">https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2</span>
+  <span class="na">steps</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">install</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">neofetch</span>
+    <span class="pi">-</span> <span class="na">hostname</span><span class="pi">:</span> <span class="s">lightning.local</span>
+  <span class="na">export</span><span class="pi">:</span>
+    <span class="na">qcow2</span><span class="pi">:</span>
+      <span class="na">path</span><span class="pi">:</span> <span class="s">lightning.qcow2</span>
+</code></pre></div></div>
+
+<p>Build the image.</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>virt-maker build <span class="nt">-f</span> virtmaker.yml
+</code></pre></div></div>
+<p>Output:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span> FILE <span class="o">]</span> virtmaker.yml: Starting
+<span class="o">[</span>IMPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'url'</span>: <span class="s1">'https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2'</span><span class="o">}</span>
+<span class="nt">--2025-02-11</span> 21:43:31--  https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2
+Resolving download.rockylinux.org <span class="o">(</span>download.rockylinux.org<span class="o">)</span>... 199.232.198.132, 199.232.194.132, 2a04:4e42:4c::644, ...
+Connecting to download.rockylinux.org <span class="o">(</span>download.rockylinux.org<span class="o">)</span>|199.232.198.132|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 609812480 <span class="o">(</span>582M<span class="o">)</span> <span class="o">[</span>application/octet-stream]
+Saving to: ‘/root/.cache/virt-maker/b3b6e0e8761ecd0cdc4a2f6db40b810c.qcow2_in-progress’
+
+/root/.cache/virt-maker/b3b6e0e8761ecd0cdc4a2f6db4 100%[<span class="o">==============================================================================================================&gt;]</span> 581.56M  8.67MB/s    <span class="k">in </span>1m 42s  
+
+2025-05-17 21:45:14 <span class="o">(</span>5.68 MB/s<span class="o">)</span> - ‘/root/.cache/virt-maker/b3b6e0e8761ecd0cdc4a2f6db40b810c.qcow2_in-progress’ saved <span class="o">[</span>609812480/609812480]
+
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'neofetch'</span><span class="o">]</span>
+<span class="o">[</span>   0.0] Examining the guest ...
+<span class="o">[</span>  24.7] Setting a random seed
+<span class="o">[</span>  24.8] Setting the machine ID <span class="k">in</span> /etc/machine-id
+<span class="o">[</span>  24.8] Installing packages: neofetch
+Rocky Linux 9 - BaseOS                          1.0 MB/s | 2.3 MB     00:02    
+Rocky Linux 9 - AppStream                       4.3 MB/s | 8.4 MB     00:01    
+Rocky Linux 9 - Extras                           36 kB/s |  16 kB     00:00    
+No match <span class="k">for </span>argument: neofetch
+Error: Unable to find a match: neofetch
+virt-customize: error: dnf <span class="nt">-y</span> <span class="nb">install</span> <span class="s1">'neofetch'</span>: <span class="nb">command </span>exited with an 
+error
+
+If reporting bugs, run virt-customize with debugging enabled and include 
+the <span class="nb">complete </span>output:
+
+  virt-customize <span class="nt">-v</span> <span class="nt">-x</span> <span class="o">[</span>...]
+step failed, not finalizing snapshot
+</code></pre></div></div>
+
+<p>Notice that the installation of the <code class="language-plaintext highlighter-rouge">nefetch</code> package failed.  This is because the EPEL repository is not enabled by default in Rocky Linux 9.  To fix this, we need to enable the EPEL repository in the YAML file.</p>
+
+<p>Modify the YAML file to include the EPEL repository.</p>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">import</span><span class="pi">:</span>
+    <span class="na">download</span><span class="pi">:</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+        <span class="s">https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2</span>
+  <span class="na">steps</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">install</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">epel-release</span>
+    <span class="pi">-</span> <span class="na">install</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">neofetch</span>
+    <span class="pi">-</span> <span class="na">hostname</span><span class="pi">:</span> <span class="s">lightning.local</span>
+  <span class="na">export</span><span class="pi">:</span>
+    <span class="na">qcow2</span><span class="pi">:</span>
+      <span class="na">path</span><span class="pi">:</span> <span class="s">lightning.qcow2</span>
+</code></pre></div></div>
+
+<p>Run again:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@c373a7f61192 /]# <span class="nb">time </span>virt-maker build <span class="nt">-f</span> virtmaker.yml
+<span class="o">[</span> FILE <span class="o">]</span> virtmaker.yml: Starting
+<span class="o">[</span>IMPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'url'</span>: <span class="s1">'https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2'</span><span class="o">}</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'epel-release'</span><span class="o">]</span>
+<span class="o">[</span>   0.0] Examining the guest ...
+<span class="o">[</span>  12.3] Setting a random seed
+<span class="o">[</span>  12.3] Setting the machine ID <span class="k">in</span> /etc/machine-id
+<span class="o">[</span>  12.3] Installing packages: epel-release
+<span class="o">[</span>  25.8] Finishing off
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'neofetch'</span><span class="o">]</span>
+<span class="o">[</span>   0.0] Examining the guest ...
+<span class="o">[</span>  12.8] Setting a random seed
+<span class="o">[</span>  12.9] Installing packages: neofetch
+<span class="o">[</span> 129.6] Finishing off
+<span class="o">[</span>HOSTNA] virtmaker.yml: lightning.local
+<span class="o">[</span>   0.0] Examining the guest ...
+<span class="o">[</span>  13.0] Setting a random seed
+<span class="o">[</span>  13.1] Setting the <span class="nb">hostname</span>: lightning.local
+<span class="o">[</span>  13.2] Finishing off
+<span class="o">[</span>EXPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'path'</span>: <span class="s1">'lightning.qcow2'</span>, <span class="s1">'create_dir'</span>: False, <span class="s1">'level'</span>: 1, <span class="s1">'sparsify'</span>: False<span class="o">}</span>
+    <span class="o">(</span>100.00/100%<span class="o">)</span>
+
+real    3m14.295s
+user    1m57.053s
+sys     0m36.948s
+</code></pre></div></div>
+
+<p>Notice that we were able to skip downloading the qcow2 image again since it is already cached.</p>
+
+<p>This time when the command finishes, we can see that the image was built successfully and a qcow2 image was created.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@c373a7f61192 /]# file <span class="nt">-sL</span> lightning.qcow2 
+lightning.qcow2: QEMU QCOW2 Image <span class="o">(</span>v3<span class="o">)</span>, 10737418240 bytes
+</code></pre></div></div>
+
+<p>Now let’s say a new request comes in and we need to add some new packages to the image.  We can do this by modifying the YAML file again.</p>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">import</span><span class="pi">:</span>
+    <span class="na">download</span><span class="pi">:</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+        <span class="s">https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2</span>
+  <span class="na">steps</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">install</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">epel-release</span>
+    <span class="pi">-</span> <span class="na">install</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">neofetch</span>
+      <span class="pi">-</span> <span class="s">vim</span>
+      <span class="pi">-</span> <span class="s">nano</span>
+    <span class="pi">-</span> <span class="na">hostname</span><span class="pi">:</span> <span class="s">lightning.local</span>
+  <span class="na">export</span><span class="pi">:</span>
+    <span class="na">qcow2</span><span class="pi">:</span>
+      <span class="na">path</span><span class="pi">:</span> <span class="s">lightning.qcow2</span>
+</code></pre></div></div>
+
+<p>Since we successfully completed the previous steps, we can skip them and just use the snapshots and build a new image with the new packages.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@c373a7f61192 /]# <span class="nb">time </span>virt-maker build <span class="nt">-f</span> virtmaker.yml
+<span class="o">[</span> FILE <span class="o">]</span> virtmaker.yml: Starting
+<span class="o">[</span>IMPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'url'</span>: <span class="s1">'https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2'</span><span class="o">}</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'epel-release'</span><span class="o">]</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'neofetch'</span>, <span class="s1">'vim'</span>, <span class="s1">'nano'</span><span class="o">]</span>
+<span class="o">[</span>   0.0] Examining the guest ...
+<span class="o">[</span>  11.0] Setting a random seed
+<span class="o">[</span>  11.0] Installing packages: neofetch vim nano
+<span class="o">[</span> 130.5] Finishing off
+<span class="o">[</span>HOSTNA] virtmaker.yml: lightning.local
+<span class="o">[</span>   0.0] Examining the guest ...
+<span class="o">[</span>  13.0] Setting a random seed
+<span class="o">[</span>  13.0] Setting the <span class="nb">hostname</span>: lightning.local
+<span class="o">[</span>  13.2] Finishing off
+<span class="o">[</span>EXPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'path'</span>: <span class="s1">'lightning.qcow2'</span>, <span class="s1">'create_dir'</span>: False, <span class="s1">'level'</span>: 1, <span class="s1">'sparsify'</span>: False<span class="o">}</span>
+    <span class="o">(</span>100.00/100%<span class="o">)</span>
+
+real    2m54.768s
+user    1m42.602s
+sys     0m26.565s
+</code></pre></div></div>
+
+<p>Now let’s say we want to change the domain in the hostname from <code class="language-plaintext highlighter-rouge">local</code> to <code class="language-plaintext highlighter-rouge">mcqueen</code>.  We can do this by modifying the YAML file again.</p>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">spec</span><span class="pi">:</span>
+  <span class="na">import</span><span class="pi">:</span>
+    <span class="na">download</span><span class="pi">:</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+        <span class="s">https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2</span>
+  <span class="na">steps</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">install</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">epel-release</span>
+    <span class="pi">-</span> <span class="na">install</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">neofetch</span>
+      <span class="pi">-</span> <span class="s">vim</span>
+      <span class="pi">-</span> <span class="s">nano</span>
+    <span class="pi">-</span> <span class="na">hostname</span><span class="pi">:</span> <span class="s">lightning.mcqueen</span> <span class="c1">## Note the change</span>
+  <span class="na">export</span><span class="pi">:</span>
+    <span class="na">qcow2</span><span class="pi">:</span>
+      <span class="na">path</span><span class="pi">:</span> <span class="s">lightning.qcow2</span>
+</code></pre></div></div>
+
+<p>Notice that we are skipping the <code class="language-plaintext highlighter-rouge">install</code> steps since we already have the packages installed when running the build command again.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@c373a7f61192 /]# <span class="nb">time </span>virt-maker build <span class="nt">-f</span> virtmaker.yml
+<span class="o">[</span> FILE <span class="o">]</span> virtmaker.yml: Starting
+<span class="o">[</span>IMPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'url'</span>: <span class="s1">'https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2'</span><span class="o">}</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'epel-release'</span><span class="o">]</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'neofetch'</span>, <span class="s1">'vim'</span>, <span class="s1">'nano'</span><span class="o">]</span>
+<span class="o">[</span>HOSTNA] virtmaker.yml: lightning.mcqueen
+<span class="o">[</span>   0.0] Examining the guest ...
+<span class="o">[</span>  10.6] Setting a random seed
+<span class="o">[</span>  10.7] Setting the <span class="nb">hostname</span>: lightning.mcqueen
+<span class="o">[</span>  10.8] Finishing off
+<span class="o">[</span>EXPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'path'</span>: <span class="s1">'lightning.qcow2'</span>, <span class="s1">'create_dir'</span>: False, <span class="s1">'level'</span>: 1, <span class="s1">'sparsify'</span>: False<span class="o">}</span>
+    <span class="o">(</span>100.00/100%<span class="o">)</span>
+
+real    0m38.221s
+user    0m15.289s
+sys     0m9.070s
+</code></pre></div></div>
+
+<p>But what if we make no change and just run the command again?</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@c373a7f61192 /]# <span class="nb">time </span>virt-maker build <span class="nt">-f</span> virtmaker.yml
+<span class="o">[</span> FILE <span class="o">]</span> virtmaker.yml: Starting
+<span class="o">[</span>IMPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'url'</span>: <span class="s1">'https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2'</span><span class="o">}</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'epel-release'</span><span class="o">]</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'neofetch'</span>, <span class="s1">'vim'</span>, <span class="s1">'nano'</span><span class="o">]</span>
+<span class="o">[</span>HOSTNA] virtmaker.yml: lightning.mcqueen
+<span class="o">[</span>EXPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'path'</span>: <span class="s1">'lightning.qcow2'</span>, <span class="s1">'create_dir'</span>: False, <span class="s1">'level'</span>: 1, <span class="s1">'sparsify'</span>: False<span class="o">}</span>
+
+real    0m1.258s
+user    0m0.834s
+sys     0m0.165s
+</code></pre></div></div>
+
+<p>Since nothing in the spec changed, there’s nothing to do.</p>
+
+<h2 id="parameterized-builds">Parameterized builds</h2>
+
+<p>The YAML file can also be parameterized.
+This allows you to define variables in the YAML file and use them in the spec.
+This is useful for defining things like the hostname, image name, and other parameters that may change between builds.</p>
+
+<p>Any value in the spec can be evaluated as a Jinja2 template.</p>
+
+<p>In this example, let’s define a parameter for the hostname and use it in the spec to set the hostname and the image name.</p>
+<div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="na">params</span><span class="pi">:</span> <span class="c1">## Adding parameters</span>
+  <span class="na">hostname</span><span class="pi">:</span> <span class="s">lightning.mcqueen</span> <span class="c1">## Setting a default value</span>
+<span class="na">spec</span><span class="pi">:</span>
+  <span class="na">import</span><span class="pi">:</span>
+    <span class="na">download</span><span class="pi">:</span>
+      <span class="na">url</span><span class="pi">:</span> <span class="pi">&gt;-</span>
+        <span class="s">https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2</span>
+  <span class="na">steps</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">install</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">epel-release</span>
+    <span class="pi">-</span> <span class="na">install</span><span class="pi">:</span>
+      <span class="pi">-</span> <span class="s">neofetch</span>
+      <span class="pi">-</span> <span class="s">vim</span>
+      <span class="pi">-</span> <span class="s">nano</span>
+    <span class="pi">-</span> <span class="na">hostname</span><span class="pi">:</span> <span class="s1">'</span><span class="s">{{</span><span class="nv"> </span><span class="s">hostname</span><span class="nv"> </span><span class="s">}}'</span>
+  <span class="na">export</span><span class="pi">:</span>
+    <span class="na">qcow2</span><span class="pi">:</span>
+      <span class="na">path</span><span class="pi">:</span> <span class="s1">'</span><span class="s">{{</span><span class="nv"> </span><span class="s">hostname</span><span class="nv"> </span><span class="s">}}.qcow2'</span>
+
+</code></pre></div></div>
+
+<p>Since we already satisfied the hostname, nothing new was ran, but since we made the export image path a variable, now we have a new image.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@c373a7f61192 /]# <span class="nb">time </span>virt-maker build <span class="nt">-f</span> virtmaker.yml
+<span class="o">[</span> FILE <span class="o">]</span> virtmaker.yml: Starting
+<span class="o">[</span>IMPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'url'</span>: <span class="s1">'https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2'</span><span class="o">}</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'epel-release'</span><span class="o">]</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'neofetch'</span>, <span class="s1">'vim'</span>, <span class="s1">'nano'</span><span class="o">]</span>
+<span class="o">[</span>HOSTNA] virtmaker.yml: lightning.mcqueen
+<span class="o">[</span>EXPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'path'</span>: <span class="s1">'lightning.mcqueen.qcow2'</span>, <span class="s1">'create_dir'</span>: False, <span class="s1">'level'</span>: 1, <span class="s1">'sparsify'</span>: False<span class="o">}</span>
+    <span class="o">(</span>100.00/100%<span class="o">)</span>
+
+real    0m21.986s
+user    0m8.219s
+sys     0m6.560s
+</code></pre></div></div>
+
+<p>And now we have the original qcow2 as well as the one with the parameterized filename.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@c373a7f61192 /]# file <span class="nt">-sL</span> <span class="k">*</span>.qcow2
+lightning.mcqueen.qcow2: QEMU QCOW2 Image <span class="o">(</span>v3<span class="o">)</span>, 10737418240 bytes
+lightning.qcow2:         QEMU QCOW2 Image <span class="o">(</span>v3<span class="o">)</span>, 10737418240 bytes
+</code></pre></div></div>
+
+<p>Now let’s build a new image with a different hostname.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@c373a7f61192 /]# <span class="nb">time </span>virt-maker build <span class="nt">-f</span> virtmaker.yml <span class="nt">-p</span> <span class="nb">hostname</span><span class="o">=</span>steve.mcqueen
+<span class="o">[</span> FILE <span class="o">]</span> virtmaker.yml: Starting
+<span class="o">[</span>IMPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'url'</span>: <span class="s1">'https://download.rockylinux.org/pub/rocky/9/images/x86_64/Rocky-9-GenericCloud.latest.x86_64.qcow2'</span><span class="o">}</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'epel-release'</span><span class="o">]</span>
+<span class="o">[</span>INSTAL] virtmaker.yml: <span class="o">[</span><span class="s1">'neofetch'</span>, <span class="s1">'vim'</span>, <span class="s1">'nano'</span><span class="o">]</span>
+<span class="o">[</span>HOSTNA] virtmaker.yml: steve.mcqueen
+<span class="o">[</span>   0.0] Examining the guest ...
+<span class="o">[</span>   9.9] Setting a random seed
+<span class="o">[</span>   9.9] Setting the <span class="nb">hostname</span>: steve.mcqueen
+<span class="o">[</span>  10.0] Finishing off
+<span class="o">[</span>EXPORT] virtmaker.yml: <span class="o">{</span><span class="s1">'path'</span>: <span class="s1">'steve.mcqueen.qcow2'</span>, <span class="s1">'create_dir'</span>: False, <span class="s1">'level'</span>: 1, <span class="s1">'sparsify'</span>: False<span class="o">}</span>
+    <span class="o">(</span>100.00/100%<span class="o">)</span>
+
+real    0m31.482s
+user    0m14.567s
+sys     0m8.530s
+</code></pre></div></div>
+
+<p>And now we have three qcow2 images.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@c373a7f61192 /]# file <span class="nt">-sL</span> <span class="k">*</span>.qcow2
+lightning.mcqueen.qcow2: QEMU QCOW2 Image <span class="o">(</span>v3<span class="o">)</span>, 10737418240 bytes
+lightning.qcow2:         QEMU QCOW2 Image <span class="o">(</span>v3<span class="o">)</span>, 10737418240 bytes
+steve.mcqueen.qcow2:     QEMU QCOW2 Image <span class="o">(</span>v3<span class="o">)</span>, 10737418240 bytes
+</code></pre></div></div>
+
+<br>
+
+
+
+<!-- Related posts -->
+
+
+
+
+<br>
+<hr>
+  <h2>Related posts</h2>
+  
+    
+      <h3>virt-maker</h3>
+      <ul>
+        
+          
+        
+          
+            <li>
+              <a href="/virt-maker/projects/2024/05/06/virt-maker.html">Virt-Maker v1 Has Been Launched!</a> - <span class="post-date">06 May 2024</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/virt-maker/projects/2024/05/05/virt-maker.html">Revisiting Virt-Maker</a> - <span class="post-date">05 May 2024</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/virt-maker/projects/2015/08/12/virt-maker.html">Virt-Maker Project</a> - <span class="post-date">12 Aug 2015</span>
+            </li>
+          
+        
+      </ul>
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+
+
+
+
+<!-- Next and previous posts -->
+
+
+
+  
+    
+      
+        
+        
+        
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  
+    
+      <a class="prev-post" href="/virt-maker/projects/2024/05/06/virt-maker.html">&larr; Virt-Maker v1 Has Been Launched!</a>
+    
+  
+  
+    
+      <a class="next-post" href="/bacula-on-nixos/bacula/guide/2025/05/16/file-daemon.html">Configuring a Bacula client and it's File Daemon &rarr;</a>
+    
+  
+</div>
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

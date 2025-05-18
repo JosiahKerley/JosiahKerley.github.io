@@ -47,3 +47,4 @@ venv
 .nogit
 nogit
 .idea
+.jekyll-cache

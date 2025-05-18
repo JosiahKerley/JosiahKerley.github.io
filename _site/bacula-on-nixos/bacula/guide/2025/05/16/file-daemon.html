@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>Configuring a Bacula client and it's File Daemon</h2>
+<p class="meta">16 May 2025</p>
+
+<p><img src="/assets/img/posts/2025-04-17-immutable-bacula/splash.png" alt="&quot;The logos of the bacula and nixos project&quot;" /></p>
+
+<h2 id="backing-up-ourselves">Backing up ourselves</h2>
+<p>In the previous post, we set up a Storage Daemon. In this post, we will configure a Bacula client and its File Daemon.
+The File Daemon is responsible for backing up files on the client machine and communicating with the Director.</p>
+
+<h2 id="laying-out-the-configuration">Laying out the Configuration</h2>
+<p>As with the storage daemon’s <code class="language-plaintext highlighter-rouge">sd.nix</code>, we will create a file in the <code class="language-plaintext highlighter-rouge">bacula</code> module directory called <code class="language-plaintext highlighter-rouge">fd.nix</code>.
+This file will contain the configuration for the File Daemon.</p>
+
+<p>Import it in the <code class="language-plaintext highlighter-rouge">configuration.nix</code> file of the <code class="language-plaintext highlighter-rouge">bacula</code> module:</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">...</span>
+  <span class="nv">imports</span> <span class="o">=</span>
+    <span class="p">[</span> <span class="c"># Include the results of the hardware scan.</span>
+      <span class="sx">./hardware-configuration.nix</span>
+      <span class="sx">./bacula/dir/main.nix</span>
+      <span class="sx">./bacula/sd.nix</span>
+      <span class="sx">./bacula/fd.nix</span> <span class="c">## Add this line</span>
+    <span class="p">];</span>
+<span class="o">...</span>
+</code></pre></div></div>
+
+<h2 id="configuring-the-file-daemon">Configuring the File Daemon</h2>
+<p>Like the storage daemon, the file daemon config is pretty straight forward.</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span> <span class="nv">config</span><span class="p">,</span> <span class="nv">pkgs</span><span class="p">,</span> <span class="nv">lib</span><span class="p">,</span> <span class="o">...</span> <span class="p">}:</span>
+<span class="p">{</span>
+  <span class="nv">services</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">bacula-fd</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="nv">director</span><span class="o">.</span><span class="s2">"bacula-dir"</span> <span class="o">=</span> <span class="p">{</span> <span class="c">## The name of the director from bacula/dir/services.nix</span>
+        <span class="nv">tls</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+        <span class="nv">password</span> <span class="o">=</span> <span class="s2">"ChangeMe!"</span><span class="p">;</span> <span class="c">## The password from the client resource in bacula/dir/services.nix</span>
+      <span class="p">};</span>
+
+      <span class="nv">extraClientConfig</span> <span class="o">=</span> <span class="s2">''</span><span class="err">
+</span><span class="s2">        Plugin Directory = </span><span class="si">${</span><span class="nv">pkgs</span><span class="o">.</span><span class="nv">bacula</span><span class="si">}</span><span class="s2">/lib</span><span class="err">
+</span><span class="s2">        Maximum Concurrent Jobs = 10</span><span class="err">
+</span><span class="s2">      ''</span><span class="p">;</span>
+    <span class="p">};</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Run <code class="language-plaintext highlighter-rouge">sudo nixos-rebuild switch</code> to apply the changes.
+To verify, let’s check the status of the File Daemon:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span>bconsole <span class="nt">-c</span> /etc/bacula/bconsole.conf 
+Connecting to Director localhost:9101
+1000 OK: 10002 bacula-dir Version: 15.0.2 <span class="o">(</span>21 March 2024<span class="o">)</span>
+Enter a period to cancel a command.
+<span class="k">*</span>status client
+Automatically selected Client: bacula-fd
+Connecting to Client bacula-fd at bacula.lab:9102
+
+bacula-fd Version: 15.0.2 <span class="o">(</span>21 March 2024<span class="o">)</span>  x86_64-pc-linux-gnu unknown_distro 
+Daemon started 17-May-25 12:11. Jobs: <span class="nv">run</span><span class="o">=</span>0 <span class="nv">running</span><span class="o">=</span>0 <span class="nv">max</span><span class="o">=</span>10.
+ Heap: <span class="nv">heap</span><span class="o">=</span>557,056 <span class="nv">smbytes</span><span class="o">=</span>198,088 <span class="nv">max_bytes</span><span class="o">=</span>198,089 <span class="nv">bufs</span><span class="o">=</span>99 <span class="nv">max_bufs</span><span class="o">=</span>99
+ Sizes: <span class="nv">boffset_t</span><span class="o">=</span>8 <span class="nv">size_t</span><span class="o">=</span>8 <span class="nv">debug</span><span class="o">=</span>0 <span class="nv">trace</span><span class="o">=</span>0 <span class="nv">mode</span><span class="o">=</span>0,0 <span class="nv">bwlimit</span><span class="o">=</span>0kB/s
+ Crypto: <span class="nv">fips</span><span class="o">=</span>N/A <span class="nv">crypto</span><span class="o">=</span>OpenSSL 3.3.2 3 Sep 2024
+ Plugin: bpipe<span class="o">(</span>2<span class="o">)</span> 
+
+Running Jobs:
+Director connected using TLS at: 17-May-25 10:11
+No Jobs running.
+<span class="o">====</span>
+
+Terminated Jobs:
+<span class="o">====</span>
+<span class="k">*</span>
+</code></pre></div></div>
+<p>Looks good.  Name resolution is working and since the client is running on the same machine as the Director, we shouldn’t have any firewall issues.</p>
+
+<h2 id="running-our-first-backup">Running our first backup</h2>
+<p>Now that we have a File Daemon, we can run our first backup.</p>
+
+<p>To manually start the backup, we can use the <code class="language-plaintext highlighter-rouge">bconsole</code> command:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span>bconsole <span class="nt">-c</span> /etc/bacula/bconsole.conf 
+Connecting to Director localhost:9101
+1000 OK: 10002 bacula-dir Version: 15.0.2 <span class="o">(</span>21 March 2024<span class="o">)</span>
+Enter a period to cancel a command.
+<span class="k">*</span>run
+Automatically selected Catalog: PostgreSQL
+Using Catalog <span class="s2">"PostgreSQL"</span>
+A job name must be specified.
+Automatically selected Job: bacula backup DefaultSet
+Run Backup job
+JobName:  bacula backup DefaultSet
+Level:    Incremental
+Client:   bacula-fd
+FileSet:  DefaultSet
+Pool:     FilePool <span class="o">(</span>From Job resource<span class="o">)</span>
+Storage:  bacula-sd_file1 <span class="o">(</span>From Pool resource<span class="o">)</span>
+When:     2025-05-18 10:15:45
+Priority: 30
+OK to run? <span class="o">(</span>Yes/mod/no<span class="o">)</span>: y
+Job queued. <span class="nv">JobId</span><span class="o">=</span>2
+<span class="k">*</span>
+</code></pre></div></div>
+<p>Looks like it’s queued up and ready to go.  Let’s check the status of the client:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">*</span>status client
+Automatically selected Client: bacula-fd
+Connecting to Client bacula-fd at bacula.lab:9102
+
+bacula-fd Version: 15.0.2 <span class="o">(</span>21 March 2024<span class="o">)</span>  x86_64-pc-linux-gnu unknown_distro 
+Daemon started 17-May-25 10:14. Jobs: <span class="nv">run</span><span class="o">=</span>0 <span class="nv">running</span><span class="o">=</span>1 <span class="nv">max</span><span class="o">=</span>10.
+ Heap: <span class="nv">heap</span><span class="o">=</span>557,056 <span class="nv">smbytes</span><span class="o">=</span>537,589 <span class="nv">max_bytes</span><span class="o">=</span>537,894 <span class="nv">bufs</span><span class="o">=</span>203 <span class="nv">max_bufs</span><span class="o">=</span>205
+ Sizes: <span class="nv">boffset_t</span><span class="o">=</span>8 <span class="nv">size_t</span><span class="o">=</span>8 <span class="nv">debug</span><span class="o">=</span>0 <span class="nv">trace</span><span class="o">=</span>0 <span class="nv">mode</span><span class="o">=</span>0,0 <span class="nv">bwlimit</span><span class="o">=</span>0kB/s
+ Crypto: <span class="nv">fips</span><span class="o">=</span>N/A <span class="nv">crypto</span><span class="o">=</span>OpenSSL 3.3.2 3 Sep 2024
+ Plugin: bpipe<span class="o">(</span>2<span class="o">)</span> 
+
+Running Jobs:
+JobId 2 Job bacula_backup_DefaultSet.2025-05-18_10.15.49_03 is running.
+    Full Backup Job started: 17-May-25 12:15
+    <span class="nv">Files</span><span class="o">=</span>460 <span class="nv">Bytes</span><span class="o">=</span>6,759,958 AveBytes/sec<span class="o">=</span>281,664 LastBytes/sec<span class="o">=</span>268,396 <span class="nv">Errors</span><span class="o">=</span>0
+    <span class="nv">Bwlimit</span><span class="o">=</span>0 <span class="nv">ReadBytes</span><span class="o">=</span>6,759,958
+    Files: <span class="nv">Examined</span><span class="o">=</span>460 Backed <span class="nv">up</span><span class="o">=</span>460
+    Processing file: /boot/grub/i386-pc/lspci.mod
+    <span class="nv">SDReadSeqNo</span><span class="o">=</span>8 <span class="nv">fd</span><span class="o">=</span>7 <span class="nv">SDtls</span><span class="o">=</span>1
+Director connected using TLS at: 17-May-25 12:16
+<span class="o">====</span>
+
+Terminated Jobs:
+<span class="o">====</span>
+<span class="k">*</span>
+</code></pre></div></div>
+<p>Yep, it’s currently backing up the <code class="language-plaintext highlighter-rouge">/boot</code> directory.  Let’s check the status of the volume it’s backing up to:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">*</span>list volume
+Using Catalog <span class="s2">"PostgreSQL"</span>
+Pool: FilePool
++---------+------------+-----------+---------+----------+----------+--------------+---------+------+-----------+-----------+---------+----------+-------------+-----------+
+| mediaid | volumename | volstatus | enabled | volbytes | volfiles | volretention | recycle | slot | inchanger | mediatype | voltype | volparts | lastwritten | expiresin |
++---------+------------+-----------+---------+----------+----------+--------------+---------+------+-----------+-----------+---------+----------+-------------+-----------+
+|       1 | Vol-0001   | Append    |       1 |      237 |        0 |    1,296,000 |       1 |    0 |         0 | File      |       1 |        0 |             |         0 |
++---------+------------+-----------+---------+----------+----------+--------------+---------+------+-----------+-----------+---------+----------+-------------+-----------+
+<span class="k">*</span>
+</code></pre></div></div>
+<p>We can see that the volume is currently in the Append state.  This means that it can be written to, but nothing has been written to it yet.
+Let’s check the status of the volume again:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">*</span>list volume
+Pool: FilePool
++---------+------------+-----------+---------+------------+----------+--------------+---------+------+-----------+-----------+---------+----------+---------------------+-----------+
+| mediaid | volumename | volstatus | enabled | volbytes   | volfiles | volretention | recycle | slot | inchanger | mediatype | voltype | volparts | lastwritten         | expiresin |
++---------+------------+-----------+---------+------------+----------+--------------+---------+------+-----------+-----------+---------+----------+---------------------+-----------+
+|       1 | Vol-0001   | Append    |       1 | 65,975,866 |        0 |    1,296,000 |       1 |    0 |         0 | File      |       1 |        0 | 2025-05-17 12:18:00 | 1,295,953 |
++---------+------------+-----------+---------+------------+----------+--------------+---------+------+-----------+-----------+---------+----------+---------------------+-----------+
+<span class="k">*</span>
+</code></pre></div></div>
+<p>Aah!  Now it’s starting to fill up.  We can see that it’s written about 65MB to the volume.
+Now we wait.</p>
+
+<p>After a few minutes, the backup should finish.  Let’s check the status of the client again:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">*</span>list <span class="nb">jobs</span>
++-------+--------------------------+---------------------+------+-------+----------+------------+-----------+
+| jobid | name                     | starttime           | <span class="nb">type</span> | level | jobfiles | jobbytes   | jobstatus |
++-------+--------------------------+---------------------+------+-------+----------+------------+-----------+
+|     1 | bacula backup DefaultSet | 2025-05-17 12:00:02 | B    | F     |        0 |          0 | f         |
+|     2 | bacula backup DefaultSet | 2025-05-17 12:15:52 | B    | F     |    2,248 | 65,633,599 | T         |
++-------+--------------------------+---------------------+------+-------+----------+------------+-----------+
+<span class="k">*</span>
+</code></pre></div></div>
+<p>We can ignore that first job.  It was a test job that I ran before I started writing this post, but we see our job with ID 2 as <code class="language-plaintext highlighter-rouge">T</code> (terminated successfully) and the job backed up 2,248 files and 65MB of data.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>In this post, we configured a Bacula client and its File Daemon.  We also ran our first backup.</p>
+
+<br>
+
+
+
+<!-- Related posts -->
+
+
+
+
+<br>
+<hr>
+  <h2>Related posts</h2>
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+      <h3>bacula-on-nixos</h3>
+      <ul>
+        
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/09/storage-daemon.html">Configuring the Bacula Storage Daemon on NixOS</a> - <span class="post-date">09 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/02/catalog-and-director.html">Configuring the Bacula Catalog and Director on NixOS</a> - <span class="post-date">02 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/2025/04/25/bacula-overview.html">Architecture of Bacula</a> - <span class="post-date">25 Apr 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/18/setting-up-bacula-lab.html">Setting up a Bacula lab</a> - <span class="post-date">18 Apr 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/16/immutable-bacula.html">Building an enterprise backup solution with Bacula and NixOS</a> - <span class="post-date">16 Apr 2025</span>
+            </li>
+          
+        
+      </ul>
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+
+
+
+
+<!-- Next and previous posts -->
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+        
+        
+        
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  
+    
+      <a class="prev-post" href="/bacula-on-nixos/bacula/guide/2025/05/09/storage-daemon.html">&larr; Configuring the Bacula Storage Daemon on NixOS</a>
+    
+  
+  
+    
+      <a class="next-post" href="/">Home &rarr;</a>
+    
+  
+</div>
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

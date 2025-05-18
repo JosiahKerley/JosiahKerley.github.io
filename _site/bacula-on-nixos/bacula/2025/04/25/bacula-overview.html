@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>Architecture of Bacula</h2>
+<p class="meta">25 Apr 2025</p>
+
+<p><img src="/assets/img/posts/2025-04-17-immutable-bacula/splash.png" alt="&quot;The logos of the bacula and nixos project&quot;" /></p>
+
+<h2 id="abstract">Abstract</h2>
+<p>Bacula is a free and open-source backup software that provides a robust and scalable solution for data protection in various environments.
+In this blog post, we will delve into the architectural overview of Bacula, exploring its key components and their interactions.</p>
+
+<h2 id="an-architectural-overview-of-bacula">An Architectural Overview of Bacula</h2>
+
+<h3 id="baculas-roles">Bacula’s Roles</h3>
+<p>For the purposes of this post I will be using the term role to mean the service that the component provides to implement the architecture of Bacula.
+These roles are realized as daemons that run on the server or client machines.</p>
+
+<h4 id="the-catalog">The Catalog</h4>
+<p>The catalog is the central database that stores information about the Bacula configuration, including backup jobs, schedules, file sets, clients, and job definitions.
+The catalog is designed to be highly scalable and efficient, allowing it to handle large amounts of data and numerous backups.
+Generally, the catalog is implemented using a relational database management system (RDBMS) such as MySQL, PostgreSQL, or SQLite.</p>
+
+<h4 id="the-director">The Director</h4>
+<p>The director is the primary component responsible for managing the Bacula backup process.
+It acts as a coordinator between the client, storage daemons, and file daemons.
+The director receives job requests from clients, schedules them, and then directs the storage daemons to retrieve and store the backed-up data.
+The canonical name for the service is <code class="language-plaintext highlighter-rouge">bacula-dir</code>, but it is often referred to as the director.</p>
+
+<h4 id="storage-daemons">Storage Daemon(s)</h4>
+<p>Storage daemons are responsible for receiving files from the Bacula director and storing them on designated media, such as disk or tape.
+Canonically, the storage daemon is referred to as <code class="language-plaintext highlighter-rouge">bacula-sd</code>, but it is often referred to as the storage daemon.</p>
+
+<h4 id="file-daemons">File Daemons</h4>
+<p>File daemons are the client-side service that runs on the machines being backed up.
+Essentially, they are the agents that communicate with the Bacula director to send backup data to the storage daemons.
+This is sometimes referred to as <code class="language-plaintext highlighter-rouge">bacula-client</code> in certain package managers, but the canonical name is <code class="language-plaintext highlighter-rouge">bacula-fd</code>.</p>
+
+<h3 id="bacula-resources">Bacula Resources</h3>
+<p>In Bacula, resources are the various components that make up the backup system.
+The primary resources that we will be covering in this post are Pools, File Sets, Schedules, Jobs, and Job Definitions.</p>
+
+<h4 id="pools">Pools</h4>
+<p>Pools are logical containers that group multiple storage daemons together.
+Pools allow administrators to manage and monitor backup data across multiple storage devices or media types.
+For example, a pool can be created for disk storage, while another pool can be created for tape storage.
+This way you can store full backups on tapes and incremental backups on disks.
+That way you can save time during a restore operation, as the full backup is already on tape and only the incremental backups need to be restored from disk.</p>
+
+<p>Example configuration of a pool:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Pool {
+  Name = FilePool
+  Pool Type = Backup
+  Label Format = "Vol-"
+  Recycle = yes
+  Auto Prune = yes
+  Volume Retention = 15 days
+  Storage = some-storage
+  Maximum Volume Bytes = 50G
+  Maximum Volumes = 100
+}
+</code></pre></div></div>
+
+<h4 id="file-sets">File Sets</h4>
+<p>File sets define which files or directories on a client should be included in a backup job.
+A file set can contain multiple files and subdirectories, allowing for granular control over the data being backed up.</p>
+
+<p>Example configuration of a file set:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>FileSet {
+  Name = "DefaultSet"
+  Include {
+    File = /
+    Options {
+      Signature = MD5
+      OneFS = no
+    }
+    Options {
+      Exclude = yes
+      WildDir = "*/.cache"
+      WildDir = "*/Downloads"
+    }
+  }
+  Exclude {
+    File = /swapfile
+    File = /var/lib/bacula
+    File = /nix
+    File = /tmp
+    File = /dev
+    File = /proc
+    File = /sys
+    File = /run
+    File = /mnt
+    File = /media
+    File = /lost+found
+    File = /var/log/journal
+    File = /var/cache
+    File = /var/lib/nginx/tmp
+  }
+}
+</code></pre></div></div>
+
+<h4 id="schedules">Schedules</h4>
+<p>Schedules define when backups should occur and what backup level (full, differential, incremental, etc) should be used.</p>
+
+<p>Example configuration of a schedule:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Schedule {
+  Name = "StandardCycle"
+  Run = Incremental mon-sun at 10:00
+  Run = Full monthly at 17:00
+}
+</code></pre></div></div>
+
+<h4 id="jobs">Jobs</h4>
+<p>Jobs represent a single backup operation initiated by a client. A job includes information such as the file set, schedule, and storage location.</p>
+
+<p>Example configuration of a job:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Job {
+  Name = "backuptest backup DefaultSet"
+  JobDefs = "BaseJob"
+  Client = backuptest-fd = all
+  FileSet = "DefaultSet"
+}
+</code></pre></div></div>
+
+<h4 id="job-definitions">Job Definitions</h4>
+<p>Job definitions are a set of defaults that can be reused for multiple jobs defined.
+For example, you may want to hide the complexity of the job definition from the user and only expose the job name, client, and fileset.</p>
+
+<p>Example configuration of a job definition:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>JobDefs {
+  Name = "DefaultJob"
+  Type = Backup
+  Messages = Standard
+  Priority = 30
+  Pool = FilePool
+  FileSet = "DefaultSet"
+  Schedule = "StandardCycle"
+  Write Bootstrap = "/var/lib/bacula/bootstrap-records/%c.bsr"
+}
+</code></pre></div></div>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>In this blog post, we have provided an architectural overview of Bacula, highlighting its key components and their roles in the backup process.
+We have also discussed the various resources that Bacula uses to manage backup jobs, including pools, file sets, schedules, jobs, and job definitions.
+Understanding these components is essential for effectively configuring and managing Bacula in a production environment.
+In the next post, we will begin to configure the catalog and director.</p>
+
+<br>
+
+
+
+<!-- Related posts -->
+
+
+
+
+<br>
+<hr>
+  <h2>Related posts</h2>
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+      <h3>bacula-on-nixos</h3>
+      <ul>
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/16/file-daemon.html">Configuring a Bacula client and it's File Daemon</a> - <span class="post-date">16 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/09/storage-daemon.html">Configuring the Bacula Storage Daemon on NixOS</a> - <span class="post-date">09 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/02/catalog-and-director.html">Configuring the Bacula Catalog and Director on NixOS</a> - <span class="post-date">02 May 2025</span>
+            </li>
+          
+        
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/18/setting-up-bacula-lab.html">Setting up a Bacula lab</a> - <span class="post-date">18 Apr 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/16/immutable-bacula.html">Building an enterprise backup solution with Bacula and NixOS</a> - <span class="post-date">16 Apr 2025</span>
+            </li>
+          
+        
+      </ul>
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+
+
+
+
+<!-- Next and previous posts -->
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+        
+        
+        
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  
+    
+      <a class="prev-post" href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/18/setting-up-bacula-lab.html">&larr; Setting up a Bacula lab</a>
+    
+  
+  
+    
+      <a class="next-post" href="/bacula-on-nixos/bacula/guide/2025/05/02/catalog-and-director.html">Configuring the Bacula Catalog and Director on NixOS &rarr;</a>
+    
+  
+</div>
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

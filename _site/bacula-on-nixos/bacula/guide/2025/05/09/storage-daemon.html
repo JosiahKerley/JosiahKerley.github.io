@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>Configuring the Bacula Storage Daemon on NixOS</h2>
+<p class="meta">09 May 2025</p>
+
+<p><img src="/assets/img/posts/2025-04-17-immutable-bacula/splash.png" alt="&quot;The logos of the bacula and nixos project&quot;" /></p>
+
+<h2 id="considerations-for-the-storage-daemon">Considerations for the Storage Daemon</h2>
+<p>The storage daemon acts as the storage service for Bacula, managing the storage of backup data. It is responsible for writing and reading data to and from the storage devices.
+A device is a physical or virtual storage medium, such as a tape drive, disk, or cloud storage. Bacula supports various device types, including file, tape, and cloud devices. The configuration of the storage daemon is crucial for ensuring efficient and reliable backup operations.</p>
+
+<p>In this post, we will configure the storage daemon to use a single file device, which is a common choice for testing and development purposes.
+The file device allows Bacula to write backup data to a file on the local filesystem, making it easy to manage and access the backup data.</p>
+
+<h2 id="laying-out-the-configuration">Laying out the Configuration</h2>
+<p>Unlike with the previous post where we designed the director’s configuration code to use a directory structure and multiple files, we will instead create a single <code class="language-plaintext highlighter-rouge">sd.nix</code> file for the storage daemon configuration.
+This is because the storage daemon’s configuration is typically less complex than the director’s configuration, and a single file is sufficient for our needs.
+We will create a new file called <code class="language-plaintext highlighter-rouge">sd.nix</code> in the <code class="language-plaintext highlighter-rouge">bacula</code> directory, which will contain the configuration for the storage daemon.</p>
+
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span> <span class="nv">config</span><span class="p">,</span> <span class="nv">pkgs</span><span class="p">,</span> <span class="nv">lib</span><span class="p">,</span> <span class="o">...</span> <span class="p">}:</span>
+<span class="p">{</span>
+  <span class="nv">services</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">bacula-sd</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="nv">name</span> <span class="o">=</span> <span class="s2">"bacula-sd"</span><span class="p">;</span>
+      <span class="nv">tls</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+
+      <span class="nv">director</span><span class="o">.</span><span class="s2">"bacula-dir"</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nv">tls</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+        <span class="nv">password</span> <span class="o">=</span> <span class="s2">"ChangeMe!"</span><span class="p">;</span>
+      <span class="p">};</span>
+
+      <span class="nv">device</span><span class="o">.</span><span class="s2">"File1"</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="nv">archiveDevice</span> <span class="o">=</span> <span class="s2">"/var/lib/bacula/files/File1"</span><span class="p">;</span>
+        <span class="nv">mediaType</span> <span class="o">=</span> <span class="s2">"File"</span><span class="p">;</span>
+      <span class="p">};</span>
+
+    <span class="p">};</span>
+  <span class="p">};</span>
+
+  <span class="nv">systemd</span><span class="o">.</span><span class="nv">services</span><span class="o">.</span><span class="nv">bacula-sd</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">serviceConfig</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nv">ExecStartPre</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">"</span><span class="si">${</span><span class="nv">pkgs</span><span class="o">.</span><span class="nv">bash</span><span class="si">}</span><span class="s2">/bin/bash -c '[[ -d /var/lib/bacula/files/File1 ]] || </span><span class="si">${</span><span class="nv">pkgs</span><span class="o">.</span><span class="nv">coreutils</span><span class="si">}</span><span class="s2">/bin/mkdir -p /var/lib/bacula/files/File1'"</span>
+        <span class="s2">"-</span><span class="si">${</span><span class="nv">pkgs</span><span class="o">.</span><span class="nv">coreutils</span><span class="si">}</span><span class="s2">/bin/chown -R bacula:bacula /var/lib/bacula"</span>
+      <span class="p">];</span>
+    <span class="p">};</span>
+  <span class="p">};</span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>This will use the device <code class="language-plaintext highlighter-rouge">File1</code> to store the backup data in the directory <code class="language-plaintext highlighter-rouge">/var/lib/bacula/files/File1</code>.
+The <code class="language-plaintext highlighter-rouge">ExecStartPre</code> option is used to create the directory and set the ownership of the <code class="language-plaintext highlighter-rouge">/var/lib/bacula</code> directory to the <code class="language-plaintext highlighter-rouge">bacula</code> user and group before starting the storage daemon.
+Once the configuration is in place, run <code class="language-plaintext highlighter-rouge">sudo nixos-rebuild switch</code> to apply the changes.</p>
+
+<p>Now we can use bconsole to get the status of the storage daemon and see if it is running correctly.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span>bconsole <span class="nt">-c</span> /etc/bacula/bconsole.conf 
+Connecting to Director localhost:9101
+1000 OK: 10002 bacula-dir Version: 15.0.2 <span class="o">(</span>21 March 2024<span class="o">)</span>
+Enter a period to cancel a command.
+<span class="k">*</span>status storage
+Automatically selected Storage: bacula-sd_file1
+Connecting to Storage daemon bacula-sd_file1 at bacula.lab:9103
+
+bacula-sd Version: 15.0.2 <span class="o">(</span>21 March 2024<span class="o">)</span> x86_64-pc-linux-gnu unknown_distro 
+Daemon started 10-May-25 10:31. Jobs: <span class="nv">run</span><span class="o">=</span>0, <span class="nv">running</span><span class="o">=</span>0 <span class="nv">max</span><span class="o">=</span>20.
+ Ulimits: <span class="nv">nofile</span><span class="o">=</span>1024 <span class="nv">memlock</span><span class="o">=</span>8388608 <span class="nv">status</span><span class="o">=</span>nofile
+ Heap: <span class="nv">heap</span><span class="o">=</span>667,648 <span class="nv">smbytes</span><span class="o">=</span>205,706 <span class="nv">max_bytes</span><span class="o">=</span>391,286 <span class="nv">bufs</span><span class="o">=</span>133 <span class="nv">max_bufs</span><span class="o">=</span>134
+ Sizes: <span class="nv">boffset_t</span><span class="o">=</span>8 <span class="nv">size_t</span><span class="o">=</span>8 <span class="nv">int32_t</span><span class="o">=</span>4 <span class="nv">int64_t</span><span class="o">=</span>8 <span class="nv">mode</span><span class="o">=</span>0,0 <span class="nv">newbsr</span><span class="o">=</span>0
+ Crypto: <span class="nv">fips</span><span class="o">=</span>N/A <span class="nv">crypto</span><span class="o">=</span>OpenSSL 3.3.2 3 Sep 2024
+ Res: <span class="nv">ndevices</span><span class="o">=</span>1 <span class="nv">nautochgr</span><span class="o">=</span>0
+ Caps: APPEND_ONLY, IMMUTABLE
+
+Running Jobs:
+Director connected using TLS at: 10-May-25 11:23
+No Jobs running.
+<span class="o">====</span>
+
+Jobs waiting to reserve a drive:
+<span class="o">====</span>
+
+Terminated Jobs:
+<span class="o">====</span>
+
+Device status:
+
+Device File: <span class="s2">"File1"</span> <span class="o">(</span>/var/lib/bacula/files/File1<span class="o">)</span> is not open.
+   Available <span class="nv">Space</span><span class="o">=</span>191.3 GB
+<span class="o">==</span>
+<span class="o">====</span>
+
+Used Volume status:
+<span class="o">====</span>
+
+<span class="o">====</span>
+
+<span class="k">*</span>
+</code></pre></div></div>
+
+<p>So far, so good! The storage daemon is running and is able to connect to the director.
+Let’s go ahead and create a volume to use for our backups.</p>
+
+<h2 id="creating-a-volume">Creating a Volume</h2>
+<p>On File based devices, Bacula uses a volume to store the backup data.
+Volumes are files that are created on the storage device and are used to store the backup data (you can also think of them as tarballs).</p>
+
+<p>To create a volume, we will use the <code class="language-plaintext highlighter-rouge">bconsole</code> command line tool.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">*</span>label
+Automatically selected Storage: bacula-sd_file1
+Connecting to Storage daemon bacula-sd_file1 at bacula.lab:9103 ...
+3998 Device <span class="s2">""</span>File1<span class="s2">" (/var/lib/bacula/files/File1)"</span> is not an autochanger.
+Enter autochanger drive[0]: 
+Enter new Volume name: Vol-0001
+Enter slot <span class="o">(</span>0 or Enter <span class="k">for </span>none<span class="o">)</span>: 
+Automatically selected Pool: FilePool
+Connecting to Storage daemon bacula-sd_file1 at bacula.lab:9103 ...
+Sending label <span class="nb">command </span><span class="k">for </span>Volume <span class="s2">"Vol-0001"</span> Slot 0 ...
+3000 OK label. <span class="nv">VolBytes</span><span class="o">=</span>237 <span class="nv">VolABytes</span><span class="o">=</span>0 <span class="nv">VolType</span><span class="o">=</span>1 <span class="nv">UseProtect</span><span class="o">=</span>0 <span class="nv">VolEncrypted</span><span class="o">=</span>0 <span class="nv">Volume</span><span class="o">=</span><span class="s2">"Vol-0001"</span> <span class="nv">Device</span><span class="o">=</span><span class="s2">"File1"</span> <span class="o">(</span>/var/lib/bacula/files/File1<span class="o">)</span>
+Catalog record <span class="k">for </span>Volume <span class="s2">"Vol-0001"</span>, Slot 0  successfully created.
+Requesting to mount File1 ...
+3002 Device <span class="s2">""</span>File1<span class="s2">" (/var/lib/bacula/files/File1)"</span> is mounted.
+<span class="k">*</span>
+</code></pre></div></div>
+
+<p>Now if we look in the directory <code class="language-plaintext highlighter-rouge">/var/lib/bacula/files/File1</code>, we should see a file called <code class="language-plaintext highlighter-rouge">Vol-0001</code> which is the volume we just created.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span><span class="nb">sudo ls</span> <span class="nt">-laht</span> /var/lib/bacula/files/File1/Vol-0001
+<span class="nt">-rw-r-----</span> 1 bacula bacula 237 May 10 11:26 /var/lib/bacula/files/File1/Vol-0001
+</code></pre></div></div>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>In this post, we have configured the Bacula storage daemon to use a file device for storing backup data.
+We have also created a volume to use for our backups.
+In the next post, we will configure the file daemon to use the storage daemon and create a job to back up some data.</p>
+
+<br>
+
+
+
+<!-- Related posts -->
+
+
+
+
+<br>
+<hr>
+  <h2>Related posts</h2>
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+      <h3>bacula-on-nixos</h3>
+      <ul>
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/16/file-daemon.html">Configuring a Bacula client and it's File Daemon</a> - <span class="post-date">16 May 2025</span>
+            </li>
+          
+        
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/02/catalog-and-director.html">Configuring the Bacula Catalog and Director on NixOS</a> - <span class="post-date">02 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/2025/04/25/bacula-overview.html">Architecture of Bacula</a> - <span class="post-date">25 Apr 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/18/setting-up-bacula-lab.html">Setting up a Bacula lab</a> - <span class="post-date">18 Apr 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/16/immutable-bacula.html">Building an enterprise backup solution with Bacula and NixOS</a> - <span class="post-date">16 Apr 2025</span>
+            </li>
+          
+        
+      </ul>
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+
+
+
+
+<!-- Next and previous posts -->
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+      
+    
+      
+        
+        
+        
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  
+    
+      <a class="prev-post" href="/bacula-on-nixos/bacula/guide/2025/05/02/catalog-and-director.html">&larr; Configuring the Bacula Catalog and Director on NixOS</a>
+    
+  
+  
+    
+      <a class="next-post" href="/bacula-on-nixos/bacula/guide/2025/05/16/file-daemon.html">Configuring a Bacula client and it's File Daemon &rarr;</a>
+    
+  
+</div>
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

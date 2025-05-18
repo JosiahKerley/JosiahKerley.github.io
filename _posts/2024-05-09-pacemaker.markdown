@@ -2,6 +2,7 @@
 layout: post
 title:  "Deploying a VIP on a Pacemaker Cluster"
 date:   2024-05-09 09:43:00
+series: "Pacemaker"
 categories:
   - pacemaker
   - guides

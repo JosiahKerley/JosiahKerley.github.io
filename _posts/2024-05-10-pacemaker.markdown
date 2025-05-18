@@ -2,6 +2,7 @@
 layout: post
 title:  "Deploying an HAProxy on a Pacemaker Cluster"
 date:   2024-05-10 22:23:00
+series: "Pacemaker"
 categories:
   - pacemaker
   - guides

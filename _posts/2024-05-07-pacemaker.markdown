@@ -2,6 +2,7 @@
 layout: post
 title:  "Setting up a basic Pacemaker cluster on Rocky Linux 9"
 date:   2024-05-07 12:00:00
+series: "Pacemaker"
 categories:
   - pacemaker
   - guides

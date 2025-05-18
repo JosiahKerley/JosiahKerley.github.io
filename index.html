@@ -4,36 +4,91 @@ title: {{ site.name }}
 ---
 
 <div id="home">
-  <img src="{{ site.baseurl }}/assets/img/other/splash.png" alt="Home" style="width:100%;height:auto;">
+  <img src="{{ site.baseurl }}/assets/img/other/splash.png" alt="Home" style="width:50%;height:auto;">
+  <!--
   <h1>Jo's Home</h1>
   <p>This is where I share my experiences as a cloud engineer and software developer, with a special interest in self-hosted clouds, systems engineering, and enterprise software. But that's not all – I also love playing around with electronics, Arduino, home automation, and music.</p>
   <p>The common theme in all my projects is automation – making things work smarter and more efficiently. Here on this blog, you'll find detailed accounts of the various tech projects I've worked on, complete with practical examples, code snippets, and step-by-step instructions to help you get started or take your ideas further.</p>
   <p>So come along for the ride as we explore the power of automation, uncover new possibilities in cloud engineering and systems design, and celebrate the endless potential of software development!</p>
+  -->
   <br>
   <hr>
   <br>
   <br>
   <br>
 
-<ul class="posts">
-{% for post in site.posts %}
-  <li>
-    <a href="{{ site.baseurl }}{{ post.url }}" style="text-decoration: none; color: inherit;">
-      <h2>{{ post.title }}</h2>
-      <span>{{ post.date | date_to_string }}</span> &raquo;
-      <div style="display: flex;">
-  {% if post.content contains '<img src="' %}
-    {% assign img_parts = post.content | split: '<img src="' %}
-    {% assign img_url = img_parts[1] | split: '"' | first %}
-        <img src="{{ img_url }}" style="width: 128px; height: 128px; object-fit: cover; margin-right: 10px;">
-  {% endif %}
-        <p>{{ post.content | strip_html | truncatewords: 50 }}</p>
-      </div>
-    </a>
-    <br>
-    <hr>
-    <br>
-  </li>
-{% endfor %}
-</ul>
+<div style="display: flex; justify-content: space-between;">
+  <div style="flex: 1; margin-right: 10px;">
+    <h3>Latest Posts:</h3>
+    <ul class="posts">
+    {% for post in site.posts %}
+    {% unless post.series %}
+      <a href="{{ site.baseurl }}{{ post.url }}" style="text-decoration: none; color: inherit;">
+        <li>
+          <h2>{{ post.title }}</h2>
+          <span>{{ post.date | date_to_string }}</span> &raquo;
+          <div style="display: flex;">
+        {% if post.content contains '<img src="' %}
+          {% assign img_parts = post.content | split: '<img src="' %}
+          {% assign img_url = img_parts[1] | split: '"' | first %}
+              <img src="{{ img_url }}" style="width: 128px; height: 128px; object-fit: cover; margin-right: 10px;">
+        {% else %}
+          {% if post.fallback_thumbnail %}
+            <img src="{{ post.fallback_thumbnail }}" style="width: 128px; height: 128px; object-fit: cover; margin-right: 10px;">
+          {% else %}
+            <img src="{{ site.baseurl }}/assets/img/other/default-thumbnail.png" style="width: 128px; height: 128px; object-fit: cover; margin-right: 10px;">
+          {% endif %}
+        {% endif %}
+              <p>{{ post.content | strip_html | truncatewords: 50 }}</p>
+          </div>
+        <br>
+        <hr>
+        <br>
+        </li>
+      </a>
+    {% endunless %}
+    {% endfor %}
+    </ul>
+  </div>
+
+  <div style="flex: 1; margin-left: 10px;">
+    <h3>Latest Series:</h3>
+    <ul class="posts">
+    {% assign series_posts = site.posts | group_by: "series" %}
+    {% for group in series_posts %}
+      {% if group.name and group.name != "" %}
+        {% assign series_total = group.items | size %}
+        {% for post in group.items %}
+          {% assign series_entry = series_total | minus: forloop.index | plus: 1 %}
+          <a href="{{ site.baseurl }}{{ post.url }}" style="text-decoration: none; color: inherit;">
+            <li>
+              <h4><em>{{ post.series }} {{ series_entry }}/{{ series_total }}</em></h4>
+              <h2>{{ post.title }}</h2>
+              <span>{{ post.date | date_to_string }}</span> &raquo;
+              <div style="display: flex;">
+              {% if post.content contains '<img src="' %}
+                {% assign img_parts = post.content | split: '<img src="' %}
+                {% assign img_url = img_parts[1] | split: '"' | first %}
+                  <img src="{{ img_url }}" style="width: 128px; height: 128px; object-fit: cover; margin-right: 10px;">
+              {% else %}
+                {% if post.fallback_thumbnail %}
+                  <img src="{{ post.fallback_thumbnail }}" style="width: 128px; height: 128px; object-fit: cover; margin-right: 10px;">
+                {% else %}
+                  <img src="{{ site.baseurl }}/assets/img/other/default-thumbnail.png" style="width: 128px; height: 128px; object-fit: cover; margin-right: 10px;">
+                {% endif %}
+              {% endif %}
+                <p>{{ post.content | strip_html | truncatewords: 50 }}</p>
+              </div>
+              <br>
+              <hr>
+              <br>
+            </li>
+          </a>
+        {% endfor %}
+      {% endif %}
+    {% endfor %}
+    </ul>
+  </div>
+</div>
+
 </div>

@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>Configuring the Bacula Catalog and Director on NixOS</h2>
+<p class="meta">02 May 2025</p>
+
+<p><img src="/assets/img/posts/2025-04-17-immutable-bacula/splash.png" alt="&quot;The logos of the bacula and nixos project&quot;" /></p>
+
+<h2 id="laying-out-the-configuration">Laying out the Configuration</h2>
+<p>Now that we have a high-level overview of the Bacula architecture, we can start configuring the Bacula catalog and director on NixOS.
+First, let’s break out our configuration.nix so that all the bacula related code is in its own directory.</p>
+
+<h3 id="create-the-directory-structure">Create the directory structure</h3>
+<p>Current structure:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/etc/nixos
+├── configuration.nix
+└── hardware-configuration.nix
+</code></pre></div></div>
+<p>Create a new directory for the Bacula configuration files:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span><span class="nb">sudo mkdir</span> <span class="nt">-p</span> /etc/nixos/bacula/dir
+</code></pre></div></div>
+<p>New structure:</p>
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/etc/nixos
+├── bacula
+│   └── dir
+├── configuration.nix
+└── hardware-configuration.nix
+</code></pre></div></div>
+
+<h3 id="directors-configuration-file">Director’s Configuration File</h3>
+<p>In /etc/nixos/bacula/dir create a new file called <code class="language-plaintext highlighter-rouge">main.nix</code> with a minimal config.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span><span class="nb">sudo </span>nano /etc/nixos/bacula/dir/main.nix
+</code></pre></div></div>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span> <span class="nv">config</span><span class="p">,</span> <span class="nv">pkgs</span><span class="p">,</span> <span class="nv">lib</span><span class="p">,</span> <span class="o">...</span> <span class="p">}:</span>
+<span class="p">{</span>
+  <span class="nv">imports</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sx">./services.nix</span>
+  <span class="p">];</span>
+<span class="p">}</span>
+</code></pre></div></div>
+<p>This will serve as the entrypoint for the Bacula catalog and director configuration.
+Don’t worry, we will be adding more to this file later.</p>
+
+<p>As the import implies, we will create a new file called <code class="language-plaintext highlighter-rouge">services.nix</code> in the same directory.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span><span class="nb">sudo </span>nano /etc/nixos/bacula/dir/services.nix
+</code></pre></div></div>
+
+<p>To start, we will configure the server to run postgres.</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span> <span class="nv">config</span><span class="p">,</span> <span class="nv">pkgs</span><span class="p">,</span> <span class="nv">lib</span><span class="p">,</span> <span class="o">...</span> <span class="p">}:</span>
+<span class="p">{</span>
+  <span class="nv">services</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">postgresql</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="nv">package</span> <span class="o">=</span> <span class="nv">pkgs</span><span class="o">.</span><span class="nv">postgresql_13</span><span class="p">;</span>
+      <span class="nv">settings</span><span class="o">.</span><span class="nv">timezone</span> <span class="o">=</span> <span class="nv">config</span><span class="o">.</span><span class="nv">time</span><span class="o">.</span><span class="nv">timeZone</span><span class="p">;</span>
+      <span class="nv">enableTCPIP</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="nv">initialScript</span> <span class="o">=</span> <span class="nv">pkgs</span><span class="o">.</span><span class="nv">writeText</span> <span class="s2">"postgresql-init.sql"</span> <span class="s2">''</span><span class="err">
+</span><span class="s2">        CREATE ROLE root LOGIN CREATEDB CREATEROLE;</span><span class="err">
+</span><span class="s2">      ''</span><span class="p">;</span>
+    <span class="p">};</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<h3 id="plumbing-it-all-together">Plumbing it all together</h3>
+<p>In <code class="language-plaintext highlighter-rouge">/etc/nixos/configuration.nix</code> there is an import statement near the top of the file.</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">...</span>
+  <span class="nv">imports</span> <span class="o">=</span>
+    <span class="p">[</span> <span class="c"># Include the results of the hardware scan.</span>
+      <span class="sx">./hardware-configuration.nix</span>
+    <span class="p">];</span>
+<span class="o">...</span>
+</code></pre></div></div>
+
+<p>We will add our new Bacula configuration to this list.</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">...</span>
+  <span class="nv">imports</span> <span class="o">=</span>
+    <span class="p">[</span> <span class="c"># Include the results of the hardware scan.</span>
+      <span class="sx">./hardware-configuration.nix</span>
+      <span class="sx">./bacula/dir/main.nix</span>
+    <span class="p">];</span>
+<span class="o">...</span>
+</code></pre></div></div>
+
+<h3 id="rebuild-the-system">Rebuild the system</h3>
+<p>Now that we have our configuration in place, we can rebuild the system.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+<span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span><span class="nb">sudo </span>nixos-rebuild switch
+building Nix...
+building the system configuration...
+these 25 derivations will be built:
+...
+building <span class="s1">'/nix/store/sn258ay8c7fq3g3xmxva6nj2vn6q0nzz-nixos-system-bacula-24.11.710905.a0f3e10d9435.drv'</span>...
+updating GRUB 2 menu...
+Warning: os-prober will be executed to detect other bootable partitions.
+Its output will be used to detect bootable binaries on them and create new boot entries.
+lsblk: /dev/mapper/no<span class="k">*</span><span class="o">[</span>0-9]: not a block device
+lsblk: /dev/mapper/block<span class="k">*</span><span class="o">[</span>0-9]: not a block device
+lsblk: /dev/mapper/devices<span class="k">*</span><span class="o">[</span>0-9]: not a block device
+lsblk: /dev/mapper/found<span class="k">*</span><span class="o">[</span>0-9]: not a block device
+stopping the following units: accounts-daemon.service
+activating the configuration...
+setting up /etc...
+reloading user units <span class="k">for </span>josiah...
+reloading user units <span class="k">for </span>gdm...
+restarting sysinit-reactivation.target
+reloading the following units: dbus.service
+restarting the following units: polkit.service
+starting the following units: accounts-daemon.service
+the following new units were started: postgresql.service, run-credentials-systemd<span class="se">\x</span>2dtmpfiles<span class="se">\x</span>2dresetup.service.mount, sysinit-reactivation.target, systemd-tmpfiles-resetup.service
+</code></pre></div></div>
+
+<p>Looks good, let’s see if we now have a running postgres instance.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span><span class="nb">sudo </span>systemctl status postgresql
+● postgresql.service - PostgreSQL Server
+     Loaded: loaded <span class="o">(</span>/etc/systemd/system/postgresql.service<span class="p">;</span> enabled<span class="p">;</span> preset: ignored<span class="o">)</span>
+     Active: active <span class="o">(</span>running<span class="o">)</span> since Sat 2025-05-03 10:10:12 MDT<span class="p">;</span> 1min 19s ago
+...
+</code></pre></div></div>
+<p>Great! We have a running postgres instance.  With all of that boilerplate out of the way, we can now start configuring the Bacula catalog and director.</p>
+
+<h2 id="configuring-the-catalog-and-director">Configuring the Catalog and Director</h2>
+
+<h3 id="the-catalog">The Catalog</h3>
+<p>Let’s edit services.nix and add an initial director configuration.
+We will need this to install the database setup scripts.</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span> <span class="nv">config</span><span class="p">,</span> <span class="nv">pkgs</span><span class="p">,</span> <span class="nv">lib</span><span class="p">,</span> <span class="o">...</span> <span class="p">}:</span>
+<span class="p">{</span>
+  <span class="nv">services</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">postgresql</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="o">...</span>
+    <span class="p">};</span>
+    <span class="nv">bacula-dir</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="nv">name</span> <span class="o">=</span> <span class="s2">"bacula-dir"</span><span class="p">;</span>
+      <span class="nv">password</span> <span class="o">=</span> <span class="s2">"ChangeMe"</span><span class="p">;</span>
+      <span class="nv">port</span> <span class="o">=</span> <span class="mi">9101</span><span class="p">;</span>
+      <span class="nv">tls</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+      <span class="nv">extraConfig</span> <span class="o">=</span> <span class="s2">''</span><span class="err">
+</span><span class="s2">        Messages {</span><span class="err">
+</span><span class="s2">          Name = Daemon</span><span class="err">
+</span><span class="s2">          mailcommand = "</span><span class="si">${</span><span class="nv">pkgs</span><span class="o">.</span><span class="nv">bacula</span><span class="si">}</span><span class="s2">/sbin/bsmtp -h localhost -f \"\(Bacula\) \&lt;%r\&gt;\" -s \"Bacula daemon message\" %r"</span><span class="err">
+</span><span class="s2">          operatorcommand = "/home/bacula/bin/bsmtp -h localhost</span><span class="err">
+</span><span class="s2">                -f \"\(Bacula\) %r\"</span><span class="err">
+</span><span class="s2">                -s \"Bacula: Intervention needed for %j\" %r"</span><span class="err">
+</span><span class="s2">          mail = sysop@lab = all, !skipped, !info</span><span class="err">
+</span><span class="s2">          #mail = sysop@lab = all</span><span class="err">
+</span><span class="s2">          console = all, !skipped, !saved</span><span class="err">
+</span><span class="s2">          operator = sysop@lab = all</span><span class="err">
+</span><span class="s2">          append = "/var/lib/bacula/bacula-messages-daemon.log" = all, !skipped</span><span class="err">
+</span><span class="s2">          catalog = all</span><span class="err">
+</span><span class="s2">        }</span><span class="err">
+</span><span class="s2">      ''</span><span class="p">;</span>
+    <span class="p">};</span>
+  <span class="p">};</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Run <code class="language-plaintext highlighter-rouge">nicxos-rebuild switch</code>.  The command will fail in the end, but it should put our database scripts in the nix store.
+The three scripts we need are:</p>
+<ul>
+  <li>create_bacula_database</li>
+  <li>make_bacula_tables</li>
+  <li>grant_bacula_privileges
+To find the paths of these scripts, run the following command:
+    <div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>find /nix/store/ <span class="nt">-name</span> create_bacula_database <span class="nt">-or</span> <span class="nt">-name</span> make_bacula_tables <span class="nt">-or</span> <span class="nt">-name</span> grant_bacula_privileges
+</code></pre></div>    </div>
+    <p>For me, the output was:</p>
+    <div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code>/nix/store/82cw16m67asbxi04rxkwxm6djnd12q98-bacula-15.0.2/etc/make_bacula_tables
+/nix/store/82cw16m67asbxi04rxkwxm6djnd12q98-bacula-15.0.2/etc/create_bacula_database
+/nix/store/82cw16m67asbxi04rxkwxm6djnd12q98-bacula-15.0.2/etc/grant_bacula_privileges
+</code></pre></div>    </div>
+  </li>
+</ul>
+
+<p>So for me, I need to run:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo</span> /nix/store/82cw16m67asbxi04rxkwxm6djnd12q98-bacula-15.0.2/etc/create_bacula_database postgresql
+<span class="nb">sudo</span> /nix/store/82cw16m67asbxi04rxkwxm6djnd12q98-bacula-15.0.2/etc/make_bacula_tables postgresql
+<span class="nb">sudo</span> /nix/store/82cw16m67asbxi04rxkwxm6djnd12q98-bacula-15.0.2/etc/grant_bacula_privileges postgresql
+<span class="nb">sudo touch</span> /var/lib/bacula/db-created
+</code></pre></div></div>
+<p>in order to setup the catalog in the postgres database.</p>
+
+<p>In the future this process may not be necessary, as of the date of writing this post, the bacula-dir service in nixos does not create the database for you.</p>
+
+<h2 id="a-minimal-director-configuration">A minimal Director configuration</h2>
+<p>With the current <code class="language-plaintext highlighter-rouge">service.nix</code>, the bacula-dir service will not start.
+This is because we currently have no Job defined.  So let’s put in a minimum working nix configuration that will allow the bacula-dir service to start.</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span> <span class="nv">config</span><span class="p">,</span> <span class="nv">pkgs</span><span class="p">,</span> <span class="nv">lib</span><span class="p">,</span> <span class="o">...</span> <span class="p">}:</span>
+<span class="p">{</span>
+  <span class="nv">services</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">postgresql</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="nv">package</span> <span class="o">=</span> <span class="nv">pkgs</span><span class="o">.</span><span class="nv">postgresql_13</span><span class="p">;</span>
+      <span class="nv">settings</span><span class="o">.</span><span class="nv">timezone</span> <span class="o">=</span> <span class="nv">config</span><span class="o">.</span><span class="nv">time</span><span class="o">.</span><span class="nv">timeZone</span><span class="p">;</span>
+      <span class="nv">enableTCPIP</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="nv">initialScript</span> <span class="o">=</span> <span class="nv">pkgs</span><span class="o">.</span><span class="nv">writeText</span> <span class="s2">"postgresql-init.sql"</span> <span class="s2">''</span><span class="err">
+</span><span class="s2">        CREATE ROLE root LOGIN CREATEDB CREATEROLE;</span><span class="err">
+</span><span class="s2">      ''</span><span class="p">;</span>
+    <span class="p">};</span>
+    <span class="nv">bacula-dir</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+      <span class="nv">name</span> <span class="o">=</span> <span class="s2">"bacula-dir"</span><span class="p">;</span>
+      <span class="nv">password</span> <span class="o">=</span> <span class="s2">"ChangeMe!"</span><span class="p">;</span>
+      <span class="nv">port</span> <span class="o">=</span> <span class="mi">9101</span><span class="p">;</span>
+      <span class="nv">tls</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+      <span class="nv">extraConfig</span> <span class="o">=</span> <span class="s2">''</span><span class="err">
+</span><span class="s2">        Messages {</span><span class="err">
+</span><span class="s2">          Name = Daemon</span><span class="err">
+</span><span class="s2">          mailcommand = "</span><span class="si">${</span><span class="nv">pkgs</span><span class="o">.</span><span class="nv">bacula</span><span class="si">}</span><span class="s2">/sbin/bsmtp -h localhost -f \"\(Bacula\) \&lt;%r\&gt;\" -s \"Bacula daemon message\" %r"</span><span class="err">
+</span><span class="s2">          operatorcommand = "/home/bacula/bin/bsmtp -h localhost</span><span class="err">
+</span><span class="s2">                -f \"\(Bacula\) %r\"</span><span class="err">
+</span><span class="s2">                -s \"Bacula: Intervention needed for %j\" %r"</span><span class="err">
+</span><span class="s2">          mail = sysop@lab = all, !skipped, !info</span><span class="err">
+</span><span class="s2">          console = all, !skipped, !saved</span><span class="err">
+</span><span class="s2">          operator = sysop@lab = all</span><span class="err">
+</span><span class="s2">          append = "/var/lib/bacula/bacula-messages-daemon.log" = all, !skipped</span><span class="err">
+</span><span class="s2">          catalog = all</span><span class="err">
+</span><span class="s2">        }</span><span class="err">
+
+</span><span class="s2">        Storage {</span><span class="err">
+</span><span class="s2">          Name = bacula-sd_file1</span><span class="err">
+</span><span class="s2">          Address = bacula.lab</span><span class="err">
+</span><span class="s2">          Password = "ChangeMe!"</span><span class="err">
+</span><span class="s2">          Device = File1</span><span class="err">
+</span><span class="s2">          Autochanger = yes</span><span class="err">
+</span><span class="s2">          Media Type = File</span><span class="err">
+</span><span class="s2">          Maximum Concurrent Jobs = 20</span><span class="err">
+</span><span class="s2">        }</span><span class="err">
+
+</span><span class="s2">        Pool {</span><span class="err">
+</span><span class="s2">          Name = FilePool</span><span class="err">
+</span><span class="s2">          Pool Type = Backup</span><span class="err">
+</span><span class="s2">          Label Format = "Vol-"</span><span class="err">
+</span><span class="s2">          Recycle = yes</span><span class="err">
+</span><span class="s2">          Auto Prune = yes</span><span class="err">
+</span><span class="s2">          Volume Retention = 15 days</span><span class="err">
+</span><span class="s2">          Storage = bacula-sd_file1</span><span class="err">
+</span><span class="s2">          Maximum Volume Bytes = 50G</span><span class="err">
+</span><span class="s2">          Maximum Volumes = 100</span><span class="err">
+</span><span class="s2">        }</span><span class="err">
+
+</span><span class="s2">        FileSet {</span><span class="err">
+</span><span class="s2">          Name = "DefaultSet"</span><span class="err">
+</span><span class="s2">          Include {</span><span class="err">
+</span><span class="s2">            File = /</span><span class="err">
+</span><span class="s2">            Options {</span><span class="err">
+</span><span class="s2">              Signature = MD5</span><span class="err">
+</span><span class="s2">              OneFS = no</span><span class="err">
+</span><span class="s2">            }</span><span class="err">
+</span><span class="s2">            Options {</span><span class="err">
+</span><span class="s2">              Exclude = yes</span><span class="err">
+</span><span class="s2">              WildDir = "*/.cache"</span><span class="err">
+</span><span class="s2">              WildDir = "*/Downloads"</span><span class="err">
+</span><span class="s2">            }</span><span class="err">
+</span><span class="s2">          }</span><span class="err">
+</span><span class="s2">          Exclude {</span><span class="err">
+</span><span class="s2">            File = /swapfile</span><span class="err">
+</span><span class="s2">            File = /var/lib/bacula</span><span class="err">
+</span><span class="s2">            File = /nix</span><span class="err">
+</span><span class="s2">            File = /tmp</span><span class="err">
+</span><span class="s2">            File = /dev</span><span class="err">
+</span><span class="s2">            File = /proc</span><span class="err">
+</span><span class="s2">            File = /sys</span><span class="err">
+</span><span class="s2">            File = /run</span><span class="err">
+</span><span class="s2">            File = /mnt</span><span class="err">
+</span><span class="s2">            File = /media</span><span class="err">
+</span><span class="s2">            File = /lost+found</span><span class="err">
+</span><span class="s2">            File = /var/log/journal</span><span class="err">
+</span><span class="s2">            File = /var/cache</span><span class="err">
+</span><span class="s2">            File = /var/lib/nginx/tmp</span><span class="err">
+</span><span class="s2">          }</span><span class="err">
+</span><span class="s2">        }</span><span class="err">
+
+</span><span class="s2">        Schedule {</span><span class="err">
+</span><span class="s2">          Name = "StandardCycle"</span><span class="err">
+</span><span class="s2">          Run = Incremental mon-sun at 10:00</span><span class="err">
+</span><span class="s2">          Run = Full monthly at 17:00</span><span class="err">
+</span><span class="s2">        }</span><span class="err">
+
+</span><span class="s2">        JobDefs {</span><span class="err">
+</span><span class="s2">          Name = "BaseJob"</span><span class="err">
+</span><span class="s2">          Type = Backup</span><span class="err">
+</span><span class="s2">          Messages = Standard</span><span class="err">
+</span><span class="s2">          Priority = 30</span><span class="err">
+</span><span class="s2">          Pool = FilePool</span><span class="err">
+</span><span class="s2">          FileSet = "DefaultSet"</span><span class="err">
+</span><span class="s2">          Schedule = "StandardCycle"</span><span class="err">
+</span><span class="s2">          Write Bootstrap = "/var/lib/bacula/bootstrap-records/%c.bsr"</span><span class="err">
+</span><span class="s2">        }</span><span class="err">
+
+</span><span class="s2">        Job {</span><span class="err">
+</span><span class="s2">          Name = "bacula backup DefaultSet"</span><span class="err">
+</span><span class="s2">          JobDefs = "BaseJob"</span><span class="err">
+</span><span class="s2">          Client = bacula-fd = all</span><span class="err">
+</span><span class="s2">          FileSet = "DefaultSet"</span><span class="err">
+</span><span class="s2">        }</span><span class="err">
+
+</span><span class="s2">        Client {</span><span class="err">
+</span><span class="s2">          Name = bacula-fd</span><span class="err">
+</span><span class="s2">          Catalog = PostgreSQL</span><span class="err">
+</span><span class="s2">          Address = bacula.lab</span><span class="err">
+</span><span class="s2">          Password = "ChangeMe!"</span><span class="err">
+</span><span class="s2">        }</span><span class="err">
+</span><span class="s2">      ''</span><span class="p">;</span>
+    <span class="p">};</span>
+  <span class="p">};</span>
+
+  <span class="nv">systemd</span><span class="o">.</span><span class="nv">services</span><span class="o">.</span><span class="nv">bacula-dir</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">serviceConfig</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="nv">ExecStartPre</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">"-</span><span class="si">${</span><span class="nv">pkgs</span><span class="o">.</span><span class="nv">coreutils</span><span class="si">}</span><span class="s2">/bin/chown -R bacula:bacula /var/lib/bacula"</span> <span class="p">];</span>
+      <span class="nv">ExecStartPost</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">"</span><span class="si">${</span><span class="nv">pkgs</span><span class="o">.</span><span class="nv">coreutils</span><span class="si">}</span><span class="s2">/bin/chown -R bacula:bacula /var/lib/bacula"</span> <span class="p">];</span>
+    <span class="p">};</span>
+    <span class="nv">path</span> <span class="o">=</span> <span class="p">[</span> <span class="nv">pkgs</span><span class="o">.</span><span class="nv">bacula</span> <span class="nv">pkgs</span><span class="o">.</span><span class="nv">coreutils</span> <span class="nv">pkgs</span><span class="o">.</span><span class="nv">su</span> <span class="nv">pkgs</span><span class="o">.</span><span class="nv">postgresql_13</span> <span class="p">];</span>
+  <span class="p">};</span>
+
+  <span class="nv">environment</span><span class="o">.</span><span class="nv">etc</span><span class="o">.</span><span class="s2">"bacula/bconsole.conf"</span><span class="o">.</span><span class="nv">text</span> <span class="o">=</span> <span class="s2">''</span><span class="err">
+</span><span class="s2">    Director {</span><span class="err">
+</span><span class="s2">      Name = bacula-dir</span><span class="err">
+</span><span class="s2">      address = localhost</span><span class="err">
+</span><span class="s2">      Password = "ChangeMe!"</span><span class="err">
+</span><span class="s2">    }</span><span class="err">
+</span><span class="s2">  ''</span><span class="p">;</span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+<p>And after a <code class="language-plaintext highlighter-rouge">nixos-rebuild switch</code>, we should have a working Bacula director.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span><span class="nb">sudo </span>systemctl status bacula-dir
+● bacula-dir.service - Bacula Director Daemon
+     Loaded: loaded <span class="o">(</span>/etc/systemd/system/bacula-dir.service<span class="p">;</span> enabled<span class="p">;</span> preset: ignored<span class="o">)</span>
+     Active: active <span class="o">(</span>running<span class="o">)</span> since Sun 2025-05-03 10:38:39 MDT<span class="p">;</span> 4min 34s ago
+ Invocation: 81be24a6c70e41a2817dc2679c4293c7
+   Main PID: 46063 <span class="o">(</span>bacula-dir<span class="o">)</span>
+         IO: 0B <span class="nb">read</span>, 0B written
+      Tasks: 5 <span class="o">(</span>limit: 4684<span class="o">)</span>
+     Memory: 2M <span class="o">(</span>peak: 3.2M<span class="o">)</span>
+        CPU: 88ms
+     CGroup: /system.slice/system-bacula.slice/bacula-dir.service
+             └─46063 /nix/store/82cw16m67asbxi04rxkwxm6djnd12q98-bacula-15.0.2/sbin/bacula-dir <span class="nt">-f</span> <span class="nt">-u</span> bacula <span class="nt">-g</span> bacula <span class="nt">-c</span> /nix/store/py5c38l2zpy2jrwrfyaxh1iprbbb0kvd-bacula-dir.conf
+
+May 03 01:38:39 bacula su[46055]: Successful su <span class="k">for </span>postgres by root
+May 03 01:38:39 bacula su[46055]: pam_unix<span class="o">(</span>su:session<span class="o">)</span>: session opened <span class="k">for </span>user postgres<span class="o">(</span><span class="nv">uid</span><span class="o">=</span>71<span class="o">)</span> by <span class="o">(</span><span class="nv">uid</span><span class="o">=</span>0<span class="o">)</span>
+May 03 01:38:39 bacula bacula-dir-pre-start[46057]:  
+May 03 01:38:39 bacula bacula-dir-pre-start[46057]: This script will update a Bacula PostgreSQL database
+May 03 01:38:39 bacula bacula-dir-pre-start[46057]:  from any from version 12-16 or 1014-1025 to version 1026
+May 03 01:38:39 bacula bacula-dir-pre-start[46057]:  which is needed to convert from any Bacula Communty to version 15.0.x
+May 03 01:38:39 bacula bacula-dir-pre-start[46057]:  
+May 03 01:38:39 bacula bacula-dir-pre-start[46057]: Current bacula database is up-to-date <span class="o">(</span>version 1026<span class="o">)</span><span class="nb">.</span>
+May 03 01:38:39 bacula su[46055]: pam_unix<span class="o">(</span>su:session<span class="o">)</span>: session closed <span class="k">for </span>user postgres
+May 03 01:38:39 bacula systemd[1]: Started Bacula Director Daemon.
+</code></pre></div></div>
+
+<h2 id="poking-around-with-bconsole">Poking around with bconsole</h2>
+<p>Now that we have a running Bacula director, we can use the <code class="language-plaintext highlighter-rouge">bconsole</code> command to interact with it.
+<code class="language-plaintext highlighter-rouge">bconsole</code> is the defacto command line interface for Bacula.  It is also used for crude shell scripting.</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@bacula:~]<span class="nv">$ </span>bconsole <span class="nt">-c</span> /etc/bacula/bconsole.conf 
+Connecting to Director localhost:9101
+1000 OK: 10002 bacula-dir Version: 15.0.2 <span class="o">(</span>21 March 2024<span class="o">)</span>
+Enter a period to cancel a command.
+<span class="k">*</span>status director
+bacula-dir Version: 15.0.2 <span class="o">(</span>21 March 2024<span class="o">)</span> x86_64-pc-linux-gnu unknown_distro 
+Daemon started 03-May-25 02:04, conf reloaded 03-May-2025 02:04:13
+ Jobs: <span class="nv">run</span><span class="o">=</span>0, <span class="nv">running</span><span class="o">=</span>0 <span class="nv">max</span><span class="o">=</span>20 <span class="nv">mode</span><span class="o">=</span>0,0
+ Crypto: <span class="nv">fips</span><span class="o">=</span>N/A <span class="nv">crypto</span><span class="o">=</span>OpenSSL 3.3.2 3 Sep 2024
+ Heap: <span class="nv">heap</span><span class="o">=</span>671,744 <span class="nv">smbytes</span><span class="o">=</span>338,083 <span class="nv">max_bytes</span><span class="o">=</span>1,339,589 <span class="nv">bufs</span><span class="o">=</span>324 <span class="nv">max_bufs</span><span class="o">=</span>336
+ Res: <span class="nv">njobs</span><span class="o">=</span>1 <span class="nv">nclients</span><span class="o">=</span>1 <span class="nv">nstores</span><span class="o">=</span>1 <span class="nv">npools</span><span class="o">=</span>1 <span class="nv">ncats</span><span class="o">=</span>1 <span class="nv">nfsets</span><span class="o">=</span>1 <span class="nv">nscheds</span><span class="o">=</span>1
+
+Scheduled Jobs <span class="o">(</span>2/50<span class="o">)</span>:
+Level          Type     Pri  Scheduled          Job Name           Volume
+<span class="o">===================================================================================</span>
+Incremental    Backup    30  03-May-25 10:00    bacula backup DefaultSet <span class="k">*</span>unknown<span class="k">*</span>
+Full           Backup    30  03-May-25 17:00    bacula backup DefaultSet <span class="k">*</span>unknown<span class="k">*</span>
+<span class="o">====</span>
+
+Running Jobs:
+Console connected using TLS at 03-May-25 02:06
+No Jobs running.
+<span class="o">====</span>
+No Terminated Jobs.
+<span class="o">====</span>
+<span class="k">*</span>
+</code></pre></div></div>
+
+<p>From that we can see that we have a running Bacula director, and that it is configured to run two jobs.
+Since we haven’t configured and file daemon or storage daemon, we can’t do very much however.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>In this post, we have configured the Bacula catalog and director on NixOS using a minimal configuration.
+It’s not production ready, we don’t have any clients, we don’t even have a storage daemon yet, but the director is running and we can start adding more configuration.
+In the next post, we will configure the Bacula storage daemon.</p>
+
+<br>
+
+
+
+<!-- Related posts -->
+
+
+
+
+<br>
+<hr>
+  <h2>Related posts</h2>
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+      <h3>bacula-on-nixos</h3>
+      <ul>
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/16/file-daemon.html">Configuring a Bacula client and it's File Daemon</a> - <span class="post-date">16 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/09/storage-daemon.html">Configuring the Bacula Storage Daemon on NixOS</a> - <span class="post-date">09 May 2025</span>
+            </li>
+          
+        
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/2025/04/25/bacula-overview.html">Architecture of Bacula</a> - <span class="post-date">25 Apr 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/18/setting-up-bacula-lab.html">Setting up a Bacula lab</a> - <span class="post-date">18 Apr 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/16/immutable-bacula.html">Building an enterprise backup solution with Bacula and NixOS</a> - <span class="post-date">16 Apr 2025</span>
+            </li>
+          
+        
+      </ul>
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+
+
+
+
+<!-- Next and previous posts -->
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+      
+    
+      
+      
+    
+      
+        
+        
+        
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  
+    
+      <a class="prev-post" href="/bacula-on-nixos/bacula/2025/04/25/bacula-overview.html">&larr; Architecture of Bacula</a>
+    
+  
+  
+    
+      <a class="next-post" href="/bacula-on-nixos/bacula/guide/2025/05/09/storage-daemon.html">Configuring the Bacula Storage Daemon on NixOS &rarr;</a>
+    
+  
+</div>
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

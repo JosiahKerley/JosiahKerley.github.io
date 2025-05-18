@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>Building an enterprise backup solution with Bacula and NixOS</h2>
+<p class="meta">16 Apr 2025</p>
+
+<p><img src="/assets/img/posts/2025-04-17-immutable-bacula/splash.png" alt="&quot;The logos of the bacula and nixos project&quot;" /></p>
+
+<h2 id="abstract">Abstract</h2>
+<p>The goal of this series of posts is to provide an actionable reference for building an enterprise-grade backup solution using Bacula and NixOS.
+This post will cover the following topics:</p>
+<ul>
+  <li>What is enterprise-grade backup and why use Bacula?</li>
+  <li>What is an immutable operating system and why use NixOS?</li>
+  <li>Why use NixOS and Bacula pair so well together?</li>
+</ul>
+
+<h2 id="first-things-first">First things first</h2>
+<h3 id="what-is-enterprise-grade-backup">What is Enterprise Grade Backup?</h3>
+<p>When I think of enterprise-grade backup, I think of the following features:</p>
+<ul>
+  <li>Automatic backup scheduling</li>
+  <li>Mulit-OS support (Linux, Windows, MacOS)</li>
+  <li>Incremental and differential backups</li>
+  <li>Support for multiple file systems and storage media (tape, disk, network)</li>
+  <li>Support for backing up files as well as arbitrary streams of data (i.e., databases that dump to stdout)</li>
+  <li>The ability to orchestrate the backup so that snapshots, database dumps, setup/cleanup scripts, etc. can be run before and after the backup</li>
+  <li>Backups that are optimized for minimal restore time (i.e., if a restore needs to be done, the backed up data can be stored in a manner that enables minimal tape swapping and seeking)</li>
+  <li>Centralized management and monitoring</li>
+  <li>Highly customizable configuration options</li>
+  <li>Distributed architecture for scalability and availability</li>
+</ul>
+
+<p>Since the early 2010s, Bacula has been my go to backup solution for building a disaster recovery service for enterprise environments.</p>
+
+<p>Bacula (Backup, Archiving, and Recovery) is an open-source, enterprise-grade data protection system.
+It provides a comprehensive solution for backing up and recovering critical data in the event of hardware failure, software corruption, or other disasters.</p>
+
+<p>Bacula is widely used in enterprise environments to protect critical data from various types of threats.
+Its flexibility, scalability, and reliability make it a popular choice for organizations of all sizes.</p>
+
+<p>If you are coming from other backup solutions, Bacula may be a bit overwhelming at first, especially if you do not have a unix-like background.
+Deploying Bacula in a large production environment can be a daunting task because it often feels less like you are working with a concise service and more like you are given a toolbox to build your own backup solution.
+There are many moving parts to Bacula, but in this post, we will focus on a minimal setup that will allow you to get started with Bacula.</p>
+
+<h3 id="what-is-an-immutable-operating-system">What is an Immutable Operating System?</h3>
+<p>An immutable operating system is an operating system that is designed to be unchangeable after it has been deployed.
+Specifically, there is a hard line drawn in the sand between the system’s installation files and the data files.</p>
+
+<p>You may be familiar with configuration management tools like Puppet, Chef, or Ansible, and the idea of a, “patrolling the system” to ensure that the system is in a known state.
+Basically, you have a tool that runs and (hopefully) brings your system into a sane state if a configuration drift occurs.</p>
+
+<p>However with an immutable operating system, the idea is that you do not need to worry about configuration drift because the system is designed to be unchangeable.
+I.e., you ‘compile’ the system files and make them read-only.</p>
+
+<p>Nowadays there are a few linux distributions that are immutable by default, such as Fedora Silverblue, OpenSUSE MicroOS, and NixOS.</p>
+
+<p>In general, I prefer NixOS because it is a declarative operating system that allows you to define the entire system in code and apply changes (relatively) quickly in an atomic manner with rollback capabilities.
+The language that NixOS uses is called Nix, and it is a functional programming language that is designed to be used for package management and system configuration.
+There is no package manager per-se, but rather when a package needs to be installed, the nix code that produces the binary is imported into your system.
+One advantage of this is that you can have multiple versions of a package installed at the same time, and you can easily roll back to a previous version if something goes wrong.
+You can also have multiple versions of libraries installed at the same time so you don’t run into ‘dependency hell’ when you are trying to install a new package.</p>
+
+<h3 id="why-nixos-and-bacula">Why NixOS and Bacula?</h3>
+<p>One thing to know about Bacula is that it is a very config file driven system.  I mean <em>very</em> config file driven.
+This is what I mean by that:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>root@bacula:/etc/bacula]# <span class="nb">wc</span> <span class="nt">-l</span> ./<span class="k">*</span>
+  195 ./archive-jobs.conf
+  395 ./backup-jobs.conf
+    5 ./bconsole.conf
+  355 ./clients.conf
+    7 ./dynamic.conf
+  333 ./filesets.conf
+   79 ./jobdefs.conf
+   40 ./jobs.conf
+   77 ./pools.conf
+   43 ./schedules.conf
+   32 ./storages.conf
+ 1561 total
+</code></pre></div></div>
+<p>Those are the line counts for most (but not all – we’ll get into that later) of the config files on a system I operate to backup ~15 systems.
+You may be saying to yourself, “Jo, that is a lot of config files, why would I want to use Bacula?”.
+For one, Bacula is a very powerful and flexible.  Those config files represent a fine-tuned backup system that does exactly what I want it to do in the way that I want it to do it.
+I can fearlessly hop onto one of those systems and delete the database and feel confident that I can restore it from the backup in a couple of minutes.
+And if I found out that a file from a month ago was corrupted, I can go back and restore it from the backup and restore it in less than an hour.
+But you are right, that is a lot of config files to manage.</p>
+
+<p>That’s were NixOS comes in.  One of the beauties of NixOS is that it is a declarative system, so once I have a tuned-in nix code that generates the config files, I can just run <code class="language-plaintext highlighter-rouge">nixos-rebuild switch</code> and it will generate the config files for me.
+If something breaks, I can just roll back to the previous version of the system and it will be in a known state.
+Plus, the way I have developed the system, adding clients, changing schedules, modifying jobs, etc. have been abstracted away into a site-constant that is easy to modify and the code handles the rest.</p>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>In this post, we have covered the basics of Bacula and NixOS, and how they can be used together to create an enterprise-grade backup solution.
+In the next post, we will go over setting up a lab and installing NixOS from an ISO image.</p>
+
+<br>
+
+
+
+<!-- Related posts -->
+
+
+
+
+<br>
+<hr>
+  <h2>Related posts</h2>
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+      <h3>bacula-on-nixos</h3>
+      <ul>
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/16/file-daemon.html">Configuring a Bacula client and it's File Daemon</a> - <span class="post-date">16 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/09/storage-daemon.html">Configuring the Bacula Storage Daemon on NixOS</a> - <span class="post-date">09 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/02/catalog-and-director.html">Configuring the Bacula Catalog and Director on NixOS</a> - <span class="post-date">02 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/2025/04/25/bacula-overview.html">Architecture of Bacula</a> - <span class="post-date">25 Apr 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/18/setting-up-bacula-lab.html">Setting up a Bacula lab</a> - <span class="post-date">18 Apr 2025</span>
+            </li>
+          
+        
+          
+        
+      </ul>
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+
+
+
+
+<!-- Next and previous posts -->
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+        
+        
+        
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  
+    
+      <a class="prev-post" href="/virt-maker/projects/2015/08/12/virt-maker.html">&larr; Virt-Maker Project</a>
+    
+  
+  
+    
+      <a class="next-post" href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/18/setting-up-bacula-lab.html">Setting up a Bacula lab &rarr;</a>
+    
+  
+</div>
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>NCPV, the Ncurses based pipeviewer written in Rust</h2>
+<p class="meta">22 Mar 2025</p>
+
+<p><img src="https://github.com/JosiahKerley/ncpv/raw/main/.media/demo.gif" alt="A GIF showing an example of ncpv running" style="max-width: 1024px;" /></p>
+
+<p>Introducing <a href="https://github.com/JosiahKerley/ncpv">ncpv</a>: A Modern, Ncurses-Based Alternative to <code class="language-plaintext highlighter-rouge">pv</code></p>
+
+<h2 id="first-off-what-is-pipeviewer">First off, what is pipeviewer?</h2>
+<p><a href="https://linux.die.net/man/1/pv">Pipeviewer</a>, or <code class="language-plaintext highlighter-rouge">pv</code>, is a terminal-based tool that allows you to monitor the progress of data through a pipeline.
+It provides a visual representation of the data transfer rate, estimated time remaining, and other useful statistics.
+It’s particularly useful when dealing with large files or long-running processes.</p>
+
+<h2 id="why-ncpv">Why ncpv?</h2>
+<p>While <code class="language-plaintext highlighter-rouge">pv</code> is a great tool and I use it all the time, but I wanted to create something that could graph the throughput of a pipe in a more visually appealing way.
+For example, what if I was to dd an image over the network using ssh and I wanted to see if there was a dip in the throughput?
+With <code class="language-plaintext highlighter-rouge">pv</code>, I can get a glance of the current throughput, but I can’t see how the current transfer rate compares to the whole transfer so far.
+I wanted to create a tool that would allow me to see the throughput of a pipe in a more visually appealing way, and that tool is <code class="language-plaintext highlighter-rouge">ncpv</code>.</p>
+
+<h2 id="is-it-a-drop-in-replacement-for-pv">Is it a drop-in replacement for pv?</h2>
+<p>Not quite. While <code class="language-plaintext highlighter-rouge">ncpv</code> is designed to be a modern alternative to <code class="language-plaintext highlighter-rouge">pv</code>, it does not support all of the same options and features.
+I hope to over time bring it up to feature parity with <code class="language-plaintext highlighter-rouge">pv</code>, but for now, it is a work in progress.
+That being said, it does support the most common use cases and is designed to be easy to use.</p>
+
+<h2 id="how-do-i-use-it">How do I use it?</h2>
+<p>You can use <code class="language-plaintext highlighter-rouge">ncpv</code> in the same way you would use <code class="language-plaintext highlighter-rouge">pv</code>. For example, let’s say you want to compress a file and transfer it over SSH in one command:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>ncpv somefile | gz | ssh user@host <span class="s2">"cat &gt; somefile.xz"</span>
+</code></pre></div></div>
+
+<h2 id="how-do-i-install-it">How do I install it?</h2>
+<p>You can install <code class="language-plaintext highlighter-rouge">ncpv</code> using <code class="language-plaintext highlighter-rouge">cargo</code>, the Rust package manager. Simply run the following command:</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git clone https://github.com/JosiahKerley/ncpv
+<span class="nb">cd </span>ncpv
+cargo build <span class="nt">--release</span>
+cargo <span class="nb">install</span> <span class="nt">--path</span> <span class="nb">.</span>
+</code></pre></div></div>
+<p>or for a quick one-liner:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>cargo <span class="nb">install</span> <span class="nt">--git</span> https://github.com/JosiahKerley/ncpv <span class="nt">--branch</span> main
+</code></pre></div></div>
+
+<h2 id="if-i-have-an-issue-how-do-i-report-it">If I have an issue, how do I report it?</h2>
+<p>Currently, issues will be tracked on the github page <a href="https://github.com/JosiahKerley/ncpv/issues">issues tab</a>.</p>
+
+<h2 id="where-can-i-find-the-source-code">Where can I find the source code?</h2>
+<p>Presently the codebase is being hosted on github at <a href="https://github.com/JosiahKerley/ncpv">https://github.com/JosiahKerley/ncpv</a>.</p>
+
+<br>
+
+
+
+<!-- Related posts -->
+
+
+
+
+
+
+
+<!-- Next and previous posts -->
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+        
+        
+        
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  
+    
+      <a class="prev-post" href="/virt-maker/projects/2015/08/12/virt-maker.html">&larr; Virt-Maker Project</a>
+    
+  
+  
+    
+      <a class="next-post" href="/bacula-on-nixos/bacula/guide/2025/05/16/file-daemon.html">Configuring a Bacula client and it's File Daemon &rarr;</a>
+    
+  
+</div>
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

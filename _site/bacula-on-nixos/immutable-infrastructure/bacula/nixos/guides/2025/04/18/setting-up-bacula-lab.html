@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+  <meta charset="UTF-8">
+  <title>Josiah Kerley</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#157878">
+  <link rel="stylesheet" href="/css/normalize.css">
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="/css/cayman.css">
+</head>
+
+  <body>
+    <a href="/">
+  <section class="page-header">
+    <h1 class="project-name">Josiah Kerley</h1>
+    <h2 class="project-tagline">Cloud Engineer, Developer, Maker</h2>
+    <img class="avatar" src="/assets/img/personal/avatar.jpg" alt="avatar" />
+  </section>
+</a>
+
+    <section class="main-content">
+
+      <h2>Setting up a Bacula lab</h2>
+<p class="meta">18 Apr 2025</p>
+
+<p><img src="/assets/img/posts/2025-04-17-immutable-bacula/splash.png" alt="&quot;The logos of the bacula and nixos project&quot;" /></p>
+
+<h2 id="overview-of-the-lab">Overview of the lab</h2>
+<p>The lab will consist of 2 NixOS virtual machines running on my desktop on the same LAN.
+The first VM will be the all-in-one bacula server and the second VM will be the bacula client.
+I will be running the VMs using libvirt but the configuration should work with any virtualization software.</p>
+
+<h2 id="installing-nixos-using-the-gui-installer">Installing NixOS using the GUI installer</h2>
+<p>Download the latest NixOS ISO from the <a href="https://nixos.org/download/">NixOS website</a>, I will be using <code class="language-plaintext highlighter-rouge">GNOME, 64-bit Intel/AMD</code> image.</p>
+
+<h3 id="installing-on-a-libvirt-host">Installing on a libvirt host</h3>
+<h4 id="step-1-of-5">Step 1 of 5</h4>
+<p>Transfer the ISO to your virtualization software and create a new VM.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/1-new-vm.png" alt="1-new-vm.png" /></p>
+<h4 id="step-2-of-5">Step 2 of 5</h4>
+<p>Select the local install media radio button and select the NixOS ISO you downloaded.  In the “Choose the operating system” field, you may not see NixOS listed.  If not, select another linux distribution.  This will not affect the installation.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/2-select-iso.png" alt="2-select-iso.png" /></p>
+<h4 id="step-3-of-5">Step 3 of 5</h4>
+<p>For CPU and RAM, I will be using 2 CPUs and 4GB of RAM.  You can adjust this to your liking.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/3-cpu-ram.png" alt="3-cpu-ram.png" /></p>
+<h4 id="step-4-of-5">Step 4 of 5</h4>
+<p>Set the disk size.  The default that libvirt chooses for NixOS is 20GB, but that will probably be too small.  I will be using 200G.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/4-default-storage.png" alt="4-default-storage.png" /></p>
+<h4 id="step-5-of-5">Step 5 of 5</h4>
+<p>If there are any other VM settings you want to change, you can check the “Customize configuration before install” checkbox.  I will be using the default settings.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/5-name-and-customize.png" alt="5-name-and-customize.png" /></p>
+<h4 id="start-the-vm">Start the VM</h4>
+<p>After finishing the VM creation, start the VM.  You should see the NixOS boot screen.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/6-boot-image.png" alt="6-boot-image.png" /></p>
+<h4 id="wait-for-boot-to-complete">Wait for boot to complete</h4>
+<p>Once the boot is complete, you will be dropped into the Gnome desktop of the live ISO.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/7-ready-to-start-install.png" alt="7-ready-to-start-install.png" /></p>
+<h4 id="welcome-to-the-nixos-installer">Welcome to the NixOS installer</h4>
+<p>Click the “Next” button to start the installation.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/8-next.png" alt="8-next.png" /></p>
+<h4 id="timezone-and-region">Timezone and Region</h4>
+<p>Set your timezone and region.  I will be using the default values discovered by the installer.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/9-next.png" alt="9-next.png" /></p>
+<h4 id="keyboard-layout">Keyboard Layout</h4>
+<p>If you are using a different keyboard layout, you can change it here.  I will be using the default US layout.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/10-next.png" alt="10-next.png" /></p>
+<h4 id="initial-user-configuration">Initial User Configuration</h4>
+<p>Create the initial admin user.  I will be creating myself as the admin user and setting the root password to something strong.  You can set the password to whatever you want.  The password will be used to log in to the system after installation.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/11-fillout-and-next.png" alt="11-fillout-and-next.png" /></p>
+<h4 id="installation-type">Installation Type</h4>
+<p>On this page, you can choose a starting configuration for your NixOS installation.  I will be using the “GNOME” option for this quide, but realistically, in production you would probably choose the “No Desktop” option.
+You can remove the desktop configuration later if you want to.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/12-next.png" alt="12-next.png" /></p>
+<h4 id="unfree-software">Unfree Software</h4>
+<p>You can leave this unchecked.  I don’t think there’s any unfree software that we will need.  This can also be enabled later if you need it for something else.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/13-next.png" alt="13-next.png" /></p>
+<h4 id="disk-partitioning">Disk Partitioning</h4>
+<p>On this page, you can choose how to partition the disk.  I will select the disk /dev/vda and then select the default “Erase disk” option.  This will erase the entire disk and create a single partition for NixOS.  If you want to create a custom partition layout, you can choose the “Manual partitioning” option.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/14-erase-and-next.png" alt="14-erase-and-next.png" /></p>
+<h4 id="preview">Preview</h4>
+<p>Everything looks good, I’ll go ahead and click the “Install” button to start the installation.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/15-install.png" alt="15-install.png" /></p>
+<h4 id="begin-installation">Begin Installation</h4>
+<p>The installation will take a few minutes to complete.  Go grab a cup of coffee or something.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/16-wait.png" alt="16-wait.png" /></p>
+<h4 id="installation-complete">Installation Complete</h4>
+<p>Looks good.  Let’s reboot into the freshly installed NixOS system.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/17-reboot.png" alt="17-reboot.png" /></p>
+<h4 id="login">Login</h4>
+<p>Use the admin user credentials you created earlier to log in to the system.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/18-login.png" alt="18-login.png" /></p>
+<h4 id="edit-the-configuration-file">Edit the configuration file</h4>
+<p>Open up the console application so we can begin to change the system configuration.
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/19-edit.png" alt="19-edit.png" />
+<img src="/assets/img/posts/2025-04-19-setting-up-bacula-lab/20-nix.png" alt="20-nix.png" /></p>
+
+<h2 id="configuring-the-system">Configuring the system</h2>
+<p>Here is the configuration.nix file that the installer generated for me.</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c"># Edit this configuration file to define what should be installed on</span>
+<span class="c"># your system.  Help is available in the configuration.nix(5) man page</span>
+<span class="c"># and in the NixOS manual (accessible by running ‘nixos-help’).</span>
+
+<span class="p">{</span> <span class="nv">config</span><span class="p">,</span> <span class="nv">pkgs</span><span class="p">,</span> <span class="o">...</span> <span class="p">}:</span>
+
+<span class="p">{</span>
+  <span class="nv">imports</span> <span class="o">=</span>
+    <span class="p">[</span> <span class="c"># Include the results of the hardware scan.</span>
+      <span class="sx">./hardware-configuration.nix</span>
+    <span class="p">];</span>
+
+  <span class="c"># Bootloader.</span>
+  <span class="nv">boot</span><span class="o">.</span><span class="nv">loader</span><span class="o">.</span><span class="nv">grub</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="nv">boot</span><span class="o">.</span><span class="nv">loader</span><span class="o">.</span><span class="nv">grub</span><span class="o">.</span><span class="nv">device</span> <span class="o">=</span> <span class="s2">"/dev/vda"</span><span class="p">;</span>
+  <span class="nv">boot</span><span class="o">.</span><span class="nv">loader</span><span class="o">.</span><span class="nv">grub</span><span class="o">.</span><span class="nv">useOSProber</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="nv">networking</span><span class="o">.</span><span class="nv">hostName</span> <span class="o">=</span> <span class="s2">"nixos"</span><span class="p">;</span> <span class="c"># Define your hostname.</span>
+  <span class="c"># networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.</span>
+
+  <span class="c"># Configure network proxy if necessary</span>
+  <span class="c"># networking.proxy.default = "http://user:password@proxy:port/";</span>
+  <span class="c"># networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";</span>
+
+  <span class="c"># Enable networking</span>
+  <span class="nv">networking</span><span class="o">.</span><span class="nv">networkmanager</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="c"># Set your time zone.</span>
+  <span class="nv">time</span><span class="o">.</span><span class="nv">timeZone</span> <span class="o">=</span> <span class="s2">"America/Denver"</span><span class="p">;</span>
+
+  <span class="c"># Select internationalisation properties.</span>
+  <span class="nv">i18n</span><span class="o">.</span><span class="nv">defaultLocale</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+
+  <span class="nv">i18n</span><span class="o">.</span><span class="nv">extraLocaleSettings</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">LC_ADDRESS</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+    <span class="nv">LC_IDENTIFICATION</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+    <span class="nv">LC_MEASUREMENT</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+    <span class="nv">LC_MONETARY</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+    <span class="nv">LC_NAME</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+    <span class="nv">LC_NUMERIC</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+    <span class="nv">LC_PAPER</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+    <span class="nv">LC_TELEPHONE</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+    <span class="nv">LC_TIME</span> <span class="o">=</span> <span class="s2">"en_US.UTF-8"</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="c"># Enable the X11 windowing system.</span>
+  <span class="nv">services</span><span class="o">.</span><span class="nv">xserver</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="c"># Enable the GNOME Desktop Environment.</span>
+  <span class="nv">services</span><span class="o">.</span><span class="nv">xserver</span><span class="o">.</span><span class="nv">displayManager</span><span class="o">.</span><span class="nv">gdm</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="nv">services</span><span class="o">.</span><span class="nv">xserver</span><span class="o">.</span><span class="nv">desktopManager</span><span class="o">.</span><span class="nv">gnome</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="c"># Configure keymap in X11</span>
+  <span class="nv">services</span><span class="o">.</span><span class="nv">xserver</span><span class="o">.</span><span class="nv">xkb</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">layout</span> <span class="o">=</span> <span class="s2">"us"</span><span class="p">;</span>
+    <span class="nv">variant</span> <span class="o">=</span> <span class="s2">""</span><span class="p">;</span>
+  <span class="p">};</span>
+
+  <span class="c"># Enable CUPS to print documents.</span>
+  <span class="nv">services</span><span class="o">.</span><span class="nv">printing</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="c"># Enable sound with pipewire.</span>
+  <span class="nv">hardware</span><span class="o">.</span><span class="nv">pulseaudio</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
+  <span class="nv">security</span><span class="o">.</span><span class="nv">rtkit</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+  <span class="nv">services</span><span class="o">.</span><span class="nv">pipewire</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="nv">alsa</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="nv">alsa</span><span class="o">.</span><span class="nv">support32Bit</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="nv">pulse</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="c"># If you want to use JACK applications, uncomment this</span>
+    <span class="c">#jack.enable = true;</span>
+
+    <span class="c"># use the example session manager (no others are packaged yet so this is enabled by default,</span>
+    <span class="c"># no need to redefine it in your config for now)</span>
+    <span class="c">#media-session.enable = true;</span>
+  <span class="p">};</span>
+
+  <span class="c"># Enable touchpad support (enabled default in most desktopManager).</span>
+  <span class="c"># services.xserver.libinput.enable = true;</span>
+
+  <span class="c"># Define a user account. Don't forget to set a password with ‘passwd’.</span>
+  <span class="nv">users</span><span class="o">.</span><span class="nv">users</span><span class="o">.</span><span class="nv">josiah</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="nv">isNormalUser</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+    <span class="nv">description</span> <span class="o">=</span> <span class="s2">"Josiah Kerley"</span><span class="p">;</span>
+    <span class="nv">extraGroups</span> <span class="o">=</span> <span class="p">[</span> <span class="s2">"networkmanager"</span> <span class="s2">"wheel"</span> <span class="p">];</span>
+    <span class="nv">packages</span> <span class="o">=</span> <span class="kn">with</span> <span class="nv">pkgs</span><span class="p">;</span> <span class="p">[</span>
+    <span class="c">#  thunderbird</span>
+    <span class="p">];</span>
+  <span class="p">};</span>
+
+  <span class="c"># Install firefox.</span>
+  <span class="nv">programs</span><span class="o">.</span><span class="nv">firefox</span><span class="o">.</span><span class="nv">enable</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+
+  <span class="c"># List packages installed in system profile. To search, run:</span>
+  <span class="c"># $ nix search wget</span>
+  <span class="nv">environment</span><span class="o">.</span><span class="nv">systemPackages</span> <span class="o">=</span> <span class="kn">with</span> <span class="nv">pkgs</span><span class="p">;</span> <span class="p">[</span>
+  <span class="c">#  vim # Do not forget to add an editor to edit configuration.nix! The Nano editor is also installed by default.</span>
+  <span class="c">#  wget</span>
+  <span class="p">];</span>
+
+  <span class="c"># Some programs need SUID wrappers, can be configured further or are</span>
+  <span class="c"># started in user sessions.</span>
+  <span class="c"># programs.mtr.enable = true;</span>
+  <span class="c"># programs.gnupg.agent = {</span>
+  <span class="c">#   enable = true;</span>
+  <span class="c">#   enableSSHSupport = true;</span>
+  <span class="c"># };</span>
+
+  <span class="c"># List services that you want to enable:</span>
+
+  <span class="c"># Enable the OpenSSH daemon.</span>
+  <span class="c"># services.openssh.enable = true;</span>
+
+  <span class="c"># Open ports in the firewall.</span>
+  <span class="c"># networking.firewall.allowedTCPPorts = [ ... ];</span>
+  <span class="c"># networking.firewall.allowedUDPPorts = [ ... ];</span>
+  <span class="c"># Or disable the firewall altogether.</span>
+  <span class="c"># networking.firewall.enable = false;</span>
+
+  <span class="c"># This value determines the NixOS release from which the default</span>
+  <span class="c"># settings for stateful data, like file locations and database versions</span>
+  <span class="c"># on your system were taken. It‘s perfectly fine and recommended to leave</span>
+  <span class="c"># this value at the release version of the first install of this system.</span>
+  <span class="c"># Before changing this value read the documentation for this option</span>
+  <span class="c"># (e.g. man configuration.nix or on https://nixos.org/nixos/options.html).</span>
+  <span class="nv">system</span><span class="o">.</span><span class="nv">stateVersion</span> <span class="o">=</span> <span class="s2">"24.11"</span><span class="p">;</span> <span class="c"># Did you read the comment?</span>
+
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>Let’s go ahead and change the hostname and set a domain name.  Replace the line</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nv">networking</span><span class="o">.</span><span class="nv">hostName</span> <span class="o">=</span> <span class="s2">"nixos"</span><span class="p">;</span> <span class="c"># Define your hostname.</span>
+</code></pre></div></div>
+<p>with</p>
+<div class="language-nix highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  <span class="nv">networking</span><span class="o">.</span><span class="nv">hostName</span> <span class="o">=</span> <span class="s2">"bacula"</span><span class="p">;</span> <span class="c"># Define your hostname.</span>
+  <span class="nv">networking</span><span class="o">.</span><span class="nv">domain</span> <span class="o">=</span> <span class="s2">"lab"</span><span class="p">;</span>
+</code></pre></div></div>
+<p>and exit the editor.  Save the changes when prompted.</p>
+
+<p>Now to apply the changes we made to the configuration file, run the following command:</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nb">sudo </span>nixos-rebuild switch
+</code></pre></div></div>
+<p>This will apply the hostname change and add the domain name to the system.</p>
+
+<p>Output:</p>
+<div class="language-shell highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="o">[</span>josiah@nixos:~]<span class="nv">$ </span><span class="nb">sudo </span>nixos-rebuild switch
+building Nix...
+building the system configuration...
+these 9 derivations will be built:
+  /nix/store/14i4y957mbnza260snvipblvp24jlwwl-etc-hostname.drv
+  /nix/store/96g1jd5pmsmf6biwbf2iazhdr6drifap-avahi-daemon.conf.drv
+  /nix/store/dhxpgxfpkpjizz5dfyjxq6yqdl9vcjja-unit-avahi-daemon.service.drv
+  /nix/store/rczvsn6s8r2wz8jbrdw1bi6dqyl423q6-unit-domainname.service.drv
+  /nix/store/skdkdk5lvi6nfaj30ffdscv60b9b4qiq-system-units.drv
+  /nix/store/zdn4sh70084i66iasrmnm5msa9vjfdsj-string-hosts.drv
+  /nix/store/zijyazjg126iqmvcwwmp6rar1iwbciyw-hosts.drv
+  /nix/store/asn80b603w3azaax6r5ymdkz228ggi09-etc.drv
+  /nix/store/9h6qvf4fg928058dyvdi0ik7zflkvdhd-nixos-system-bacula-24.11.710905.a0f3e10d9435.drv
+building <span class="s1">'/nix/store/14i4y957mbnza260snvipblvp24jlwwl-etc-hostname.drv'</span>...
+building <span class="s1">'/nix/store/96g1jd5pmsmf6biwbf2iazhdr6drifap-avahi-daemon.conf.drv'</span>...
+building <span class="s1">'/nix/store/zdn4sh70084i66iasrmnm5msa9vjfdsj-string-hosts.drv'</span>...
+building <span class="s1">'/nix/store/rczvsn6s8r2wz8jbrdw1bi6dqyl423q6-unit-domainname.service.drv'</span>...
+building <span class="s1">'/nix/store/dhxpgxfpkpjizz5dfyjxq6yqdl9vcjja-unit-avahi-daemon.service.drv'</span>...
+building <span class="s1">'/nix/store/zijyazjg126iqmvcwwmp6rar1iwbciyw-hosts.drv'</span>...
+building <span class="s1">'/nix/store/skdkdk5lvi6nfaj30ffdscv60b9b4qiq-system-units.drv'</span>...
+building <span class="s1">'/nix/store/asn80b603w3azaax6r5ymdkz228ggi09-etc.drv'</span>...
+building <span class="s1">'/nix/store/9h6qvf4fg928058dyvdi0ik7zflkvdhd-nixos-system-bacula-24.11.710905.a0f3e10d9435.drv'</span>...
+updating GRUB 2 menu...
+Warning: os-prober will be executed to detect other bootable partitions.
+Its output will be used to detect bootable binaries on them and create new boot entries.
+lsblk: /dev/mapper/no<span class="k">*</span><span class="o">[</span>0-9]: not a block device
+lsblk: /dev/mapper/block<span class="k">*</span><span class="o">[</span>0-9]: not a block device
+lsblk: /dev/mapper/devices<span class="k">*</span><span class="o">[</span>0-9]: not a block device
+lsblk: /dev/mapper/found<span class="k">*</span><span class="o">[</span>0-9]: not a block device
+stopping the following units: avahi-daemon.service, avahi-daemon.socket
+activating the configuration...
+setting up /etc...
+reloading user units <span class="k">for </span>gdm...
+reloading user units <span class="k">for </span>josiah...
+restarting sysinit-reactivation.target
+starting the following units: avahi-daemon.socket
+the following new units were started: run-credentials-systemd<span class="se">\x</span>2dtmpfiles<span class="se">\x</span>2dresetup.service.mount, sysinit-reactivation.target, systemd-tmpfiles-resetup.service
+</code></pre></div></div>
+
+<h2 id="conclusion">Conclusion</h2>
+<p>In this post, we have installed NixOS using the GUI installer and configured the system to use a custom hostname and domain name.
+We will be using this configuration as the base for our Bacula lab.  In the next post, we will go over Bacula from an architectural standpoint so that we have key terms to talk to when we begin the code configuration.</p>
+
+
+<br>
+
+
+
+<!-- Related posts -->
+
+
+
+
+<br>
+<hr>
+  <h2>Related posts</h2>
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+    
+      <h3>bacula-on-nixos</h3>
+      <ul>
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/16/file-daemon.html">Configuring a Bacula client and it's File Daemon</a> - <span class="post-date">16 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/09/storage-daemon.html">Configuring the Bacula Storage Daemon on NixOS</a> - <span class="post-date">09 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/guide/2025/05/02/catalog-and-director.html">Configuring the Bacula Catalog and Director on NixOS</a> - <span class="post-date">02 May 2025</span>
+            </li>
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/bacula/2025/04/25/bacula-overview.html">Architecture of Bacula</a> - <span class="post-date">25 Apr 2025</span>
+            </li>
+          
+        
+          
+        
+          
+            <li>
+              <a href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/16/immutable-bacula.html">Building an enterprise backup solution with Bacula and NixOS</a> - <span class="post-date">16 Apr 2025</span>
+            </li>
+          
+        
+      </ul>
+    
+  
+    
+  
+    
+  
+    
+  
+    
+  
+
+
+
+
+<!-- Next and previous posts -->
+
+
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+      
+    
+      
+        
+        
+        
+  
+
+  
+
+  
+
+  
+
+  
+
+
+
+
+
+
+
+<br>
+<hr>
+<div class="transport-links">
+  
+    
+      <a class="prev-post" href="/bacula-on-nixos/immutable-infrastructure/bacula/nixos/guides/2025/04/16/immutable-bacula.html">&larr; Building an enterprise backup solution with Bacula and NixOS</a>
+    
+  
+  
+    
+      <a class="next-post" href="/bacula-on-nixos/bacula/2025/04/25/bacula-overview.html">Architecture of Bacula &rarr;</a>
+    
+  
+</div>
+
+
+
+      <footer class="site-footer">
+  <span class="site-footer-owner"><a href="">JosiahKerley.io</a> is maintained by <a href="mailto:josiahkerley@gmail.com?Subject=Blog%20Post">Josiah Kerley</a>.</span>
+  <span class="site-footer-credits"> The thoughts and opinions expressed here are mine alone and do not necessarily reflect the views of my employer.</span>
+</footer>
+
+
+    </section>
+
+    <script>
+      document.querySelectorAll('.codehider').forEach((div) => {
+        const span = div.querySelector('span');
+        div.addEventListener('click', () => {
+          const childDiv = div.querySelector('div');
+          if (childDiv) {
+            childDiv.classList.toggle('showcode');
+            //div.textContent = childDiv.classList.contains('showcode') ? 'collapse' : 'expand';
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

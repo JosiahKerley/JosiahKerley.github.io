@@ -1,0 +1,55 @@
+---
+layout: post
+title:  "NCPV, the Ncurses based pipeviewer written in Rust"
+date:   2025-03-22 11:21:00
+categories:
+  - ncpv
+  - projects
+  - rust
+---
+
+<img src="https://github.com/JosiahKerley/ncpv/raw/main/.media/demo.gif" alt="A GIF showing an example of ncpv running" style="max-width: 1024px;">
+
+Introducing [ncpv](https://github.com/JosiahKerley/ncpv): A Modern, Ncurses-Based Alternative to `pv`
+
+## First off, what is pipeviewer?
+[Pipeviewer](https://linux.die.net/man/1/pv), or `pv`, is a terminal-based tool that allows you to monitor the progress of data through a pipeline.
+It provides a visual representation of the data transfer rate, estimated time remaining, and other useful statistics.
+It's particularly useful when dealing with large files or long-running processes.
+
+## Why ncpv?
+While `pv` is a great tool and I use it all the time, but I wanted to create something that could graph the throughput of a pipe in a more visually appealing way.
+For example, what if I was to dd an image over the network using ssh and I wanted to see if there was a dip in the throughput?
+With `pv`, I can get a glance of the current throughput, but I can't see how the current transfer rate compares to the whole transfer so far.
+I wanted to create a tool that would allow me to see the throughput of a pipe in a more visually appealing way, and that tool is `ncpv`.
+
+## Is it a drop-in replacement for pv?
+Not quite. While `ncpv` is designed to be a modern alternative to `pv`, it does not support all of the same options and features.
+I hope to over time bring it up to feature parity with `pv`, but for now, it is a work in progress.
+That being said, it does support the most common use cases and is designed to be easy to use.
+
+## How do I use it?
+You can use `ncpv` in the same way you would use `pv`. For example, let's say you want to compress a file and transfer it over SSH in one command:
+```bash
+ncpv somefile | gz | ssh user@host "cat > somefile.xz"
+```
+
+## How do I install it?
+You can install `ncpv` using `cargo`, the Rust package manager. Simply run the following command:
+
+```bash
+git clone https://github.com/JosiahKerley/ncpv
+cd ncpv
+cargo build --release
+cargo install --path .
+```
+or for a quick one-liner:
+```bash
+cargo install --git https://github.com/JosiahKerley/ncpv --branch main
+```
+
+## If I have an issue, how do I report it?
+Currently, issues will be tracked on the github page [issues tab](https://github.com/JosiahKerley/ncpv/issues).
+
+## Where can I find the source code?
+Presently the codebase is being hosted on github at [https://github.com/JosiahKerley/ncpv](https://github.com/JosiahKerley/ncpv).

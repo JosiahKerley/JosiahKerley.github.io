@@ -2,6 +2,7 @@
 layout: post
 title:  "Deploying a Simple High-Availability Nginx Service with Pacemaker"
 date:   2024-05-08 11:23:00
+series: "Pacemaker"
 categories:
   - pacemaker
   - guides
